@@ -16,7 +16,7 @@ struct Node {
 
   Node(int v, vector<Node> p) {
     value = v;
-    path = p; // FIXME; should this be a list? or just point to next node?
+    path = p;
   }
 };
 
