@@ -25,11 +25,21 @@ Node minimaxAB(int position, int depth, bool player, int useThresh, int passThre
 bool deepEnough(int position, int depth);
 int staticEval(int position, bool player);
 vector<Node> moveGen(int position, bool player);
-//drawBoard(...);
+void drawBoard(int board[COLUMNS][ROWS], int columns, int rows);
+char getPiece(int slot);
 
 //TODO: for each group member, define evaluation functions (print tables to a file?)
 
 int main() {
+  int board[COLUMNS][ROWS];
+
+  // initialize board to empty:
+  for (int i = 0; i < COLUMNS; i++) {
+    for (int k = 0; k < ROWS; k++) {
+      board[i][k] = 0;
+    }
+  }
+  
   return 0;
 }
 
@@ -91,4 +101,35 @@ vector<Node> moveGen(int position, bool player) {
   vector<Node> successors;
 
   return successors;
+}
+
+/*
+  prints the entire game board in its current state
+*/
+void drawBoard(int board[COLUMNS][ROWS]], int columns, int rows) {
+  String line = "-----------------------------";
+
+  for (int i = rows - 1; i >= 0; i--) {
+    for (int k = 0; k < columns; k++) {
+      cout << "| " << getPiece(board[k][i]) << " ";
+    }
+    cout << "|" << endl;
+    cout << line << endl;
+  }
+}
+
+/*
+  helper function for displaying the game board
+  returns: a char representation of a piece which occupies a given space/slot on the board
+*/
+char getPiece(int slot) {
+  char piece;
+  if (slot == 0) { // empty slot
+    piece = ' ';
+  } else if (slot > 0) { // X's piece
+    piece = 'X';
+  } else { // O's piece
+    piece = 'O';
+  }
+  return piece;
 }
