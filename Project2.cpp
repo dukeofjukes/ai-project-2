@@ -23,12 +23,12 @@ struct Node {
 // function declarations:
 Node minimaxAB(int position, int depth, bool player, int useThresh, int passThresh);
 bool deepEnough(int position, int depth);
-int staticEval(int position, bool player);
 vector<Node> moveGen(int position, bool player);
 void drawBoard(int board[COLUMNS][ROWS], int columns, int rows);
 char getPiece(int slot);
 
 //TODO: for each group member, define evaluation functions (print tables to a file?)
+int staticEval(int position, bool player);
 
 int main() {
   int board[COLUMNS][ROWS];
@@ -41,7 +41,7 @@ int main() {
   }
 
   cout << "initial board:" << endl;
-  drawBoard(board);
+  drawBoard(board, COLUMNS, ROWS);
   
   return 0;
 }
@@ -93,7 +93,7 @@ bool deepEnough(int position, int depth) {
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
 int staticEval(int position, bool player) {
-
+  return 0; // placeholder
 }
 
 /*
@@ -109,16 +109,19 @@ vector<Node> moveGen(int position, bool player) {
 /*
   prints the entire game board in its current state
 */
-void drawBoard(int board[COLUMNS][ROWS]], int columns, int rows) {
-  String line = "-----------------------------";
+void drawBoard(int board[COLUMNS][ROWS], int columns, int rows) {
+  string line = "    -----------------------------";
 
+  cout << endl;
   for (int i = rows - 1; i >= 0; i--) {
+    cout << " " << i + 1 << "  ";
     for (int k = 0; k < columns; k++) {
       cout << "| " << getPiece(board[k][i]) << " ";
     }
     cout << "|" << endl;
     cout << line << endl;
   }
+  cout << "      1   2   3   4   5   6   7" << endl;
 }
 
 /*
