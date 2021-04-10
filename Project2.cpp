@@ -39,6 +39,9 @@ int main() {
       board[i][k] = 0;
     }
   }
+
+  cout << "initial board:" << endl;
+  drawBoard(board);
   
   return 0;
 }
