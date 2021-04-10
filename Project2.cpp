@@ -87,7 +87,7 @@ Node Connect4::minimaxAB(int row, int col, int depth, bool player, int useThresh
 
 bool Connect4::deepEnough(int row, int col, int depth) {
   // FIXME: determine what value represents a terminal node for position
-  if (depth == 5 /*|| position == terminal node / game over*/) {
+  if (depth == 3 /*|| position == terminal node / game over*/) {
     return true;
   }
   return false;
@@ -140,7 +140,11 @@ std::vector<Node> Connect4::moveGen(int row, int col, bool player) {
         else continue;
       }
     }
-
+  std::cout<< "Successors coordinates (col, row): ";
+  for(Node succ : successors)
+  {
+    std::cout << succ.col << ", " << succ.row << std::endl;
+  }
   return successors;
 }
 
