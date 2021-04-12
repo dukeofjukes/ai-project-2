@@ -27,7 +27,7 @@ public:
   Node minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh);
   bool deepEnough(int depth);
   std::vector<Node> moveGen(bool player, Node position);
-  void drawBoard();
+  void drawBoard(std::vector<std::vector<int>>);
   void playGame();
   void updateBoard(Node move);
   char getPiece(int slot);

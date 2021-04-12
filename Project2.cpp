@@ -16,8 +16,6 @@ int main()
   Connect4 gameObj;
 
 
-  cout << "initial board:" << endl;
-  gameObj.drawBoard();
 
   gameObj.playGame();
   return 0;
@@ -27,6 +25,8 @@ Connect4::Connect4() //Constructor
 {
   board.resize(ROWS, vector<int>(COLUMNS,0));
   i=0;
+  cout << "initial board:" << endl;
+  drawBoard(board);
 }
 
 void Connect4::playGame()
@@ -51,23 +51,11 @@ void Connect4::updateBoard(Node move)
   cout << "Showing states on path: " << endl;
   for (Node node : move.path)
   {
-    string line = "    -----------------------------";
-    cout << endl;
-    for (int i = ROWS - 1; i >= 0; i--)
-    {
-      cout << " " << i + 1 << "  ";
-      for (int k = 0; k < COLUMNS; k++)
-      {
-        cout << "| " << getPiece(node.state[i][k]) << " ";
-      }
-      cout << "|" << endl;
-      cout << line << endl;
-    }
-  cout << "      1   2   3   4   5   6   7" << endl;
+    drawBoard(node.state);
   }
   
   cout << "game board after one min max call:" << endl;
-  drawBoard();
+  drawBoard(this->board);
 }
 
 // useThresh is worst score for MAX (negative val)
@@ -79,20 +67,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   this->i++;
   cout << "Entering minimaxAB" << endl;
   cout << "Current state in recursion " << i << ": ";
-  string line = "    -----------------------------";
-
-  cout << endl;
-  for (int i = ROWS - 1; i >= 0; i--)
-  {
-    cout << " " << i + 1 << "  ";
-    for (int k = 0; k < COLUMNS; k++)
-    {
-      cout << "| " << getPiece(position.state[i][k]) << " ";
-    }
-    cout << "|" << endl;
-    cout << line << endl;
-  }
-  cout << "      1   2   3   4   5   6   7" << endl;
+  drawBoard(position.state);
 
   //int posGameState[ROWS][COLUMNS]; 
   //copy(&gameState[0][0], &gameState[0][0]+ROWS*COLUMNS,&posGameState[0][0]); //Copy of paramater to use recursively
@@ -211,30 +186,19 @@ vector<Node> Connect4::moveGen(bool player, Node position)
   }
 
   cout << "Successors states: " << endl;
-  for (Node succ : successors)
+  for(Node succ : successors)
   {
-    string line = "    -----------------------------";
-
-    cout << endl;
-    for (int i = ROWS - 1; i >= 0; i--)
-    {
-      cout << " " << i + 1 << "  ";
-      for (int k = 0; k < COLUMNS; k++)
-      {
-        cout << "| " << getPiece(succ.state[i][k]) << " ";
-      }
-      cout << "|" << endl;
-      cout << line << endl;
-    }
-    cout << "      1   2   3   4   5   6   7" << endl;
+    drawBoard(succ.state);
   }
+  
+  
   return successors;
 }
 
 /*
   prints the entire game board in its current state
 */
-void Connect4::drawBoard()
+void Connect4::drawBoard(std::vector<std::vector<int>> state)
 {
   string line = "    -----------------------------";
 
@@ -244,7 +208,8 @@ void Connect4::drawBoard()
     cout << " " << i + 1 << "  ";
     for (int k = 0; k < COLUMNS; k++)
     {
-      cout << "| " << getPiece(this->board[i][k]) << " ";
+      //cout << "| " << getPiece(state[i][k]) << " "; //Pretty board for user view
+      cout << "| " << state[i][k] << " "; //For debugging
     }
     cout << "|" << endl;
     cout << line << endl;
