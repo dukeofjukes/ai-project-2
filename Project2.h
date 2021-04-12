@@ -23,9 +23,9 @@ class Connect4
     public: 
         // function declarations:
         Connect4();
-        Node minimaxAB(int row, int col, int depth, bool player, int useThresh, int passThresh);
-        bool deepEnough(int row, int col, int depth);
-        std::vector<Node> moveGen(int row, int col, bool player);
+        Node minimaxAB(int depth, bool player, int useThresh, int passThresh);
+        bool deepEnough(int depth);
+        std::vector<Node> moveGen(bool player);
         void drawBoard();
         void playGame();
         void initializeBoard();
@@ -33,10 +33,10 @@ class Connect4
         char getPiece(int slot);
 
         //TODO: for each group member, define evaluation functions (print tables to a file?)
-        int staticEval(int row, int col, bool player);  
+        int staticEval(bool player);  
 
 
     private:
-        int board[COLUMNS][ROWS];
+        int board[ROWS][COLUMNS];
 
 };

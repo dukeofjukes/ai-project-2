@@ -10,6 +10,7 @@
 #include "Project2.h"
 
 int main() {
+  srand (time(NULL)); //initialize rand() seed
   Connect4 gameObj;
   gameObj.initializeBoard();
 
@@ -28,14 +29,15 @@ Connect4::Connect4() //Constructor
 
 void Connect4::playGame()
 {
-  Node move = minimaxAB(0, 0, 0, true, -100, 100);
+  Node move = minimaxAB(0, true, -100, 100);
   updateBoard(move);
+  //check win?
 }
 
 void Connect4::initializeBoard()
 {
-  for (int i = 0; i < COLUMNS; i++) { 
-    for (int k = 0; k < ROWS; k++) {
+  for (int i = 0; i < ROWS; i++) { 
+    for (int k = 0; k < COLUMNS; k++) {
       board[i][k] = 0;
     }
   }
@@ -43,9 +45,10 @@ void Connect4::initializeBoard()
 
 void Connect4::updateBoard(Node move)
 {
+  board[move.row][move.col] = 1;
   for(Node node : move.path)
   {
-    board[node.col][node.row] = 1; //testing to see if the board gets updated at all
+    board[node.row][node.col] = 1; //testing to see if the board gets updated at all
   }
   std::cout << "board after one min max call:" << std::endl;
   this->drawBoard();
@@ -53,39 +56,55 @@ void Connect4::updateBoard(Node move)
 
 // useThresh is worst score for MAX (negative val)
 // passThreshh is worst score for MIN (positive val)
-Node Connect4::minimaxAB(int row, int col, int depth, bool player, int useThresh, int passThresh) {
-  if (deepEnough(row, col, depth)) {
+// player is true if it's player 1's (MAX) turn, false if player 2's (MIN) turn
+Node Connect4::minimaxAB(int depth, bool player, int useThresh, int passThresh) {
+  std::cout << "Entering minimaxAB" << std::endl;
+
+  if (deepEnough(depth)) {
+    std::cout << "deepEnough returned true"<< std::endl;
     std::vector<Node> path; // create a null std::vector to pass to Node struct
-    return Node(staticEval(row, col, player), path);
+    return Node(staticEval(player), path);
   }
   
-  std::vector<Node> successors = moveGen(row, col, player); // generate another level of the tree
+  std::cout << "Generating succesors"<< std::endl;
+  std::vector<Node> successors = moveGen(player); // generate another level of the tree
+  std::cout << "Successors generated"<< std::endl;
 
   if (successors.empty()) {
+    std::cout << "Successors empty"<< std::endl;
     std::vector<Node> path; // create a null std::vector to pass to Node struct
-    return Node(staticEval(row, col, player), path);
+    return Node(staticEval(player), path);
   }
   
+  std::cout << "Iterating through successors"<< std::endl;
   int newValue;
   std::vector<Node> bestPath;
   for (Node succ : successors) {
-    Node result_succ = minimaxAB(succ.row, succ.col, depth + 1, !player, -(passThresh), -(useThresh));
+    std::cout << "Inside iterator"<< std::endl;
+    Node result_succ = minimaxAB(depth + 1, !player, -(passThresh), -(useThresh));
+    std::cout << "After recursive call, newValue to be set to " << -(result_succ.value)<< std::endl;
     newValue = -(result_succ.value);
+    std::cout << "Testing newValue > passThresh"<< std::endl;
     if (newValue > passThresh) {
-      newValue = passThresh;
+      std::cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path"<< std::endl;
+      passThresh = newValue;
       bestPath = result_succ.path;
       bestPath.insert(bestPath.begin(), succ);
     }
-
+    std::cout << "Testing passThresh > useThresh"<< std::endl;
     if (passThresh >= useThresh) {
-      break;
+      std::cout << "passThresh > useThresh"<< std::endl;
+      return Node(staticEval(player), bestPath);
     }
   }
-
+  std::cout << "Reached base case, returning Node(passThresh, bestPath) where passThresh = " << passThresh << " and bestPath has nodes (row, col): " << std::endl;  
+  for(Node node : bestPath){
+    std::cout << node.row << ", " << node.col << std::endl;
+  }
   return Node(passThresh, bestPath);
 }
 
-bool Connect4::deepEnough(int row, int col, int depth) {
+bool Connect4::deepEnough(int depth) {
   // FIXME: determine what value represents a terminal node for position
   if (depth == 3 /*|| position == terminal node / game over*/) {
     return true;
@@ -97,9 +116,8 @@ bool Connect4::deepEnough(int row, int col, int depth) {
   the static evaluation function, or the "heuristic"
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
-int Connect4::staticEval(int row, int col, bool player) { //Defined to return a completely random evalutation number between 1 and 100
+int Connect4::staticEval(bool player) { //Defined to return a completely random evalutation number between 1 and 100
   
-  srand (time(NULL));
   int randEvalNumber = rand()%100 + 1; //Number between 1 and 100
   return randEvalNumber; 
 }
@@ -108,42 +126,46 @@ int Connect4::staticEval(int row, int col, bool player) { //Defined to return a 
   the plausible-move generator
   returns: a list of nodes representing moves that can be made
 */
-std::vector<Node> Connect4::moveGen(int row, int col, bool player) {
+std::vector<Node> Connect4::moveGen(bool player) {
   std::vector<Node> successors;
-  std::vector<Node> p;
-  if (this->board[0][0] == 0 && this->board[0][1] == 0 && this->board[0][2] == 0 && this->board[0][3] == 0 && this->board[0][4] == 0 && this->board[0][5] == 0) //If board is empty, successors is the entire first row
+  std::vector<Node> p; //empty path to initialize new nodes
+
+  if (this->board[0][0] == 0 && this->board[0][1] == 0 && this->board[0][2] == 0 && this->board[0][3] == 0 && this->board[0][4] == 0 && this->board[0][5] == 0 && this->board[0][6] == 0) //If board is empty, successors is the entire first row
   {
     for(int column = 0; column < COLUMNS; column++)
     {
       for(int row = 0; row < 1; row++)
       {
-        Node newNode(0, p);
+        Node newNode(staticEval(player), p);
         newNode.row = row;
         newNode.col = column;
         successors.push_back(newNode);
       }
     }
   }
-  else  //The board isn't empty, find available moves
-  for(int column = 0; column < COLUMNS; column++)
+  else{//The board isn't empty, find available moves
+    for(int col = 0; col < COLUMNS; col++)
     {
       for(int row = 0; row < ROWS; row++)
       {
-        if(this->board[column][row] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
+        if(this->board[row][col] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
           {
-            Node newNode(0, p);
+            Node newNode(staticEval(player), p);
             newNode.row = row;
-            newNode.col = column;
+            newNode.col = col;
             successors.push_back(newNode);
             break;
           }
         else continue;
       }
     }
-  std::cout<< "Successors coordinates (col, row): ";
+  } 
+
+
+  std::cout<< "Successors coordinates (row, col): " << std::endl;
   for(Node succ : successors)
   {
-    std::cout << succ.col << ", " << succ.row << std::endl;
+    std::cout << succ.row << ", " << succ.col << " v=" << succ.value << std::endl;
   }
   return successors;
 }
@@ -158,7 +180,7 @@ void Connect4::drawBoard() {
   for (int i = ROWS - 1; i >= 0; i--) {
     std::cout << " " << i + 1 << "  ";
     for (int k = 0; k < COLUMNS; k++) {
-      std::cout << "| " << getPiece(this->board[k][i]) << " ";
+      std::cout << "| " << getPiece(this->board[i][k]) << " ";
     }
     std::cout << "|" << std::endl;
     std::cout << line << std::endl;
