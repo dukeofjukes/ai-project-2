@@ -8,13 +8,15 @@
 */
 
 #include "Project2.h"
+using namespace std;
 
 int main()
 {
   srand(time(NULL)); //initialize rand() seed
   Connect4 gameObj;
 
-  std::cout << "initial board:" << std::endl;
+
+  cout << "initial board:" << endl;
   gameObj.drawBoard();
 
   gameObj.playGame();
@@ -23,89 +25,128 @@ int main()
 
 Connect4::Connect4() //Constructor
 {
-  // initialize board
-  for (int i = 0; i < ROWS; i++)
-  {
-    for (int k = 0; k < COLUMNS; k++)
-    {
-      board[i][k] = 0;
-    }
-  }
+  board.resize(ROWS, vector<int>(COLUMNS,0));
+  i=0;
 }
 
 void Connect4::playGame()
 {
-  Node move = minimaxAB(0, true, -100, 100);
-  updateBoard(move);
+  bool endCondition = false;
+  Node initialNode(board);
+  while(!endCondition)
+  {
+
+    Node move = minimaxAB(initialNode, 0, true, -100, 100);
+    updateBoard(move);
+    endCondition = true; //placeholder, 1 iteration. Need to check win condition/max turns (m*n)
+  }
   //check win?
 }
 
 void Connect4::updateBoard(Node move)
 {
-  board[move.row][move.col] = 1;
+  cout << "UPDATING BOARD: setting row/col on board from move" << endl;
+  this->board = move.state;
+  
+  cout << "Showing states on path: " << endl;
   for (Node node : move.path)
   {
-    board[node.row][node.col] = 1; //testing to see if the board gets updated at all
+    string line = "    -----------------------------";
+    cout << endl;
+    for (int i = ROWS - 1; i >= 0; i--)
+    {
+      cout << " " << i + 1 << "  ";
+      for (int k = 0; k < COLUMNS; k++)
+      {
+        cout << "| " << getPiece(node.state[i][k]) << " ";
+      }
+      cout << "|" << endl;
+      cout << line << endl;
+    }
+  cout << "      1   2   3   4   5   6   7" << endl;
   }
-  std::cout << "board after one min max call:" << std::endl;
-  this->drawBoard();
+  
+  cout << "game board after one min max call:" << endl;
+  drawBoard();
 }
 
 // useThresh is worst score for MAX (negative val)
 // passThresh is worst score for MIN (positive val)
 // player is true if it's player 1's (MAX) turn, false if player 2's (MIN) turn
-Node Connect4::minimaxAB(int depth, bool player, int useThresh, int passThresh)
+// position = a node that holds a state of the board and an assosciated eval value; in connect4, a players position is the state of the entire game (the board)
+Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh)
 {
-  std::cout << "Entering minimaxAB" << std::endl;
+  this->i++;
+  cout << "Entering minimaxAB" << endl;
+  cout << "Current state in recursion " << i << ": ";
+  string line = "    -----------------------------";
 
+  cout << endl;
+  for (int i = ROWS - 1; i >= 0; i--)
+  {
+    cout << " " << i + 1 << "  ";
+    for (int k = 0; k < COLUMNS; k++)
+    {
+      cout << "| " << getPiece(position.state[i][k]) << " ";
+    }
+    cout << "|" << endl;
+    cout << line << endl;
+  }
+  cout << "      1   2   3   4   5   6   7" << endl;
+
+  //int posGameState[ROWS][COLUMNS]; 
+  //copy(&gameState[0][0], &gameState[0][0]+ROWS*COLUMNS,&posGameState[0][0]); //Copy of paramater to use recursively
   if (deepEnough(depth))
   {
-    std::cout << "deepEnough returned true" << std::endl;
-    std::vector<Node> path; // create a null std::vector to pass to Node struct
-    return Node(staticEval(player), path);
+    cout << "deepEnough returned true" << endl;
+    vector<Node> path; // create an empty path of game states
+    position.path = path;
+    return position;
   }
 
-  std::cout << "Generating successors" << std::endl;
-  std::vector<Node> successors = moveGen(player); // generate another level of the tree
-  std::cout << "Successors generated" << std::endl;
+  cout << "Generating successors" << endl;
+  vector<Node> successors = moveGen(player, position); // generate another level of the tree
+  cout << "Successors generated" << endl;
 
   if (successors.empty())
   {
-    std::cout << "Successors empty" << std::endl;
-    std::vector<Node> path; // create a null std::vector to pass to Node struct
-    return Node(staticEval(player), path);
+    cout << "Successors empty" << endl;
+    vector<Node> path; // create an empty path of game states (a vector of boards (2d vectors))
+    position.path = path;
+    return position;
   }
 
-  std::cout << "Iterating through successors" << std::endl;
+  cout << "Iterating through successors" << endl;
   int newValue;
-  std::vector<Node> bestPath;
+  vector<Node> bestPath;
   for (Node succ : successors)
   {
-    std::cout << "Inside iterator" << std::endl;
-    Node result_succ = minimaxAB(depth + 1, !player, -(passThresh), -(useThresh));
-    std::cout << "After recursive call, newValue to be set to " << -(result_succ.value) << std::endl;
+    cout << "Inside iterator" << endl;
+    Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh));
+    cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value);
-    std::cout << "Testing newValue > passThresh" << std::endl;
+    cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh)
     {
-      std::cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << std::endl;
+      cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
       passThresh = newValue;
       bestPath = result_succ.path;
       bestPath.insert(bestPath.begin(), succ);
     }
-    std::cout << "Testing passThresh > useThresh" << std::endl;
+    cout << "Testing passThresh > useThresh" << endl;
     if (passThresh >= useThresh)
     {
-      std::cout << "passThresh > useThresh" << std::endl;
-      return Node(staticEval(player), succ.row, succ.col, bestPath);
+      cout << "passThresh > useThresh" << endl;
+      position.value = passThresh;
+      position.path = bestPath;
+      return position;
     }
   }
-  std::cout << "Reached base case, returning Node(passThresh, bestPath) where passThresh = " << passThresh << " and bestPath has nodes (row, col): " << std::endl;
-  for (Node node : bestPath)
-  {
-    std::cout << node.row << ", " << node.col << std::endl;
-  }
-  return Node(passThresh, bestPath);
+  
+  position.value = passThresh;
+  position.path = bestPath;
+  return position;
+  
 }
 
 bool Connect4::deepEnough(int depth)
@@ -122,7 +163,7 @@ bool Connect4::deepEnough(int depth)
   the static evaluation function, or the "heuristic"
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
-int Connect4::staticEval(bool player)
+int Connect4::staticEval(bool player, Node position)
 { //Defined to return a completely random evalutation number between 1 and 100
 
   int randEvalNumber = rand() % 100 + 1; //Number between 1 and 100
@@ -133,18 +174,19 @@ int Connect4::staticEval(bool player)
   the plausible-move generator
   returns: a list of nodes representing moves that can be made
 */
-std::vector<Node> Connect4::moveGen(bool player)
+vector<Node> Connect4::moveGen(bool player, Node position)
 {
-  std::vector<Node> successors;
-  std::vector<Node> p; //empty path to initialize new nodes
+  vector<Node> successors;
 
-  if (this->board[0][0] == 0 && this->board[0][1] == 0 && this->board[0][2] == 0 && this->board[0][3] == 0 && this->board[0][4] == 0 && this->board[0][5] == 0 && this->board[0][6] == 0) //If board is empty, successors is the entire first row
+  if (position.state[0][0] == 0 && position.state[0][1] == 0 && position.state[0][2] == 0 && position.state[0][3] == 0 && position.state[0][4] == 0 && position.state[0][5] == 0 && position.state[0][6] == 0) //If board is empty, successors is the entire first row
   {
     for (int col = 0; col < COLUMNS; col++)
     {
       for (int row = 0; row < 1; row++)
       {
-        Node newNode(staticEval(player), row, col, p);
+        
+        Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
+        newNode.state[row][col] = 1; //+ the move. Unsure of how to represent; need to know which player and add a certain value that represents their move
         successors.push_back(newNode);
       }
     }
@@ -155,9 +197,10 @@ std::vector<Node> Connect4::moveGen(bool player)
     {
       for (int row = 0; row < ROWS; row++)
       {
-        if (this->board[row][col] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
+        if (position.state[row][col] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
         {
-          Node newNode(staticEval(player), row, col, p);
+          Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
+          newNode.state[row][col] = 1; //+ the move. Unsure of how to represent; need to know which player and add a certain value that represents their move
           successors.push_back(newNode);
           break;
         }
@@ -167,10 +210,23 @@ std::vector<Node> Connect4::moveGen(bool player)
     }
   }
 
-  std::cout << "Successors coordinates (row, col): " << std::endl;
+  cout << "Successors states: " << endl;
   for (Node succ : successors)
   {
-    std::cout << succ.row << ", " << succ.col << " v=" << succ.value << std::endl;
+    string line = "    -----------------------------";
+
+    cout << endl;
+    for (int i = ROWS - 1; i >= 0; i--)
+    {
+      cout << " " << i + 1 << "  ";
+      for (int k = 0; k < COLUMNS; k++)
+      {
+        cout << "| " << getPiece(succ.state[i][k]) << " ";
+      }
+      cout << "|" << endl;
+      cout << line << endl;
+    }
+    cout << "      1   2   3   4   5   6   7" << endl;
   }
   return successors;
 }
@@ -180,20 +236,20 @@ std::vector<Node> Connect4::moveGen(bool player)
 */
 void Connect4::drawBoard()
 {
-  std::string line = "    -----------------------------";
+  string line = "    -----------------------------";
 
-  std::cout << std::endl;
+  cout << endl;
   for (int i = ROWS - 1; i >= 0; i--)
   {
-    std::cout << " " << i + 1 << "  ";
+    cout << " " << i + 1 << "  ";
     for (int k = 0; k < COLUMNS; k++)
     {
-      std::cout << "| " << getPiece(this->board[i][k]) << " ";
+      cout << "| " << getPiece(this->board[i][k]) << " ";
     }
-    std::cout << "|" << std::endl;
-    std::cout << line << std::endl;
+    cout << "|" << endl;
+    cout << line << endl;
   }
-  std::cout << "      1   2   3   4   5   6   7" << std::endl;
+  cout << "      1   2   3   4   5   6   7" << endl;
 }
 
 /*

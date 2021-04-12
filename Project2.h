@@ -9,21 +9,13 @@
 
 struct Node
 {
-  int value, row, col;
-  std::vector<Node> path;
+  int value;                                //The evaluation value of this state
+  std::vector<std::vector<int>> state;      //The game board that would represent this state
+  std::vector<Node> path;                   //The path that led to this state
 
-  Node(int v, std::vector<Node> p)
+  Node(std::vector<std::vector<int>> state) //State initializer
   {
-    value = v;
-    path = p;
-  }
-
-  Node(int v, int r, int c, std::vector<Node> p)
-  {
-    value = v;
-    row = r;
-    col = c;
-    path = p;
+    this->state = state;
   }
 };
 
@@ -32,17 +24,18 @@ class Connect4
 public:
   // function declarations:
   Connect4();
-  Node minimaxAB(int depth, bool player, int useThresh, int passThresh);
+  Node minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh);
   bool deepEnough(int depth);
-  std::vector<Node> moveGen(bool player);
+  std::vector<Node> moveGen(bool player, Node position);
   void drawBoard();
   void playGame();
   void updateBoard(Node move);
   char getPiece(int slot);
 
   //TODO: for each group member, define evaluation functions (print tables to a file?)
-  int staticEval(bool player);
+  int staticEval(bool player, Node position);
 
 private:
-  int board[ROWS][COLUMNS];
+  std::vector<std::vector<int>> board;
+  int i;
 };
