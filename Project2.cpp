@@ -88,8 +88,9 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   }
 
   cout << "Iterating through successors" << endl;
+  // FIXME: could combine these variables into a Node object, which gets updated in the loop and returned at the end?
   int newValue;
-  Node bestMove(position.state);
+  vector<vector<int>> bestMove = position.state;
   vector<Node> bestPath;
   for (Node succ : successors)
   {
@@ -112,7 +113,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
       else
       {
         bestPath.insert(bestPath.begin(), succ); // add succ to the beginning of its own path, since it will need to be returned to its parent as the best path
-        bestMove.state = result_succ.state;
+        bestMove = result_succ.state;
       }
     }
     cout << "Testing passThresh > useThresh" << endl;
@@ -123,7 +124,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     } // else, try the next successor
   }
 
-  Node n(bestMove.state); // FIXME: for future consideration: this might not be viable for minimax, but I wasn't sure how else to store the state of the node that held the best value and path
+  Node n(bestMove); // FIXME: for future consideration: this might not be viable for minimax, but I wasn't sure how else to store the state of the node that held the best value and path
   n.value = passThresh; // passThresh will end up holding the best score so far
   n.path = bestPath; // always pass the best path to the parent
   return n;
