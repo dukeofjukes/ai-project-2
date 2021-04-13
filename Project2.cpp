@@ -45,7 +45,7 @@ void Connect4::playGame()
 
 void Connect4::updateBoard(Node move)
 {
-  cout << "UPDATING BOARD: setting row/col on board from move" << endl;
+  cout << "UPDATING BOARD: setting row/col on board from move. Printing move state before board: " << endl;
   this->board = move.state;
   
   cout << "Showing states on path: " << endl;
@@ -74,8 +74,6 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   if (deepEnough(depth))
   {
     cout << "deepEnough returned true" << endl;
-    vector<Node> path; // create an empty path of game states
-    position.path = path;
     return position;
   }
 
@@ -86,8 +84,6 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   if (successors.empty())
   {
     cout << "Successors empty" << endl;
-    vector<Node> path; // create an empty path of game states (a vector of boards (2d vectors))
-    position.path = path;
     return position;
   }
 
@@ -98,6 +94,8 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   {
     cout << "Inside iterator" << endl;
     Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh));
+    cout << "result succ state: " << endl;
+    drawBoard(result_succ.state);
     cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value);
     cout << "Testing newValue > passThresh" << endl;
@@ -112,9 +110,9 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     if (passThresh >= useThresh)
     {
       cout << "passThresh > useThresh" << endl;
-      position.value = passThresh;
-      position.path = bestPath;
-      return position;
+      result_succ.value = passThresh;
+      result_succ.path = bestPath;
+      return result_succ;
     }
   }
   
@@ -127,7 +125,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 bool Connect4::deepEnough(int depth)
 {
   // FIXME: determine what value represents a terminal node for position
-  if (depth == 3 /*|| position == terminal node / game over*/)
+  if (depth == 5 /*|| position == terminal node / game over*/)
   {
     return true;
   }
@@ -162,6 +160,9 @@ vector<Node> Connect4::moveGen(bool player, Node position)
         
         Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
         newNode.state[row][col] = 1; //+ the move. Unsure of how to represent; need to know which player and add a certain value that represents their move
+        newNode.path = position.path; //The path to new node is the path to the original + the original itself;
+        newNode.path.push_back(position);
+        newNode.value = staticEval(player, newNode);
         successors.push_back(newNode);
       }
     }
@@ -176,6 +177,9 @@ vector<Node> Connect4::moveGen(bool player, Node position)
         {
           Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
           newNode.state[row][col] = 1; //+ the move. Unsure of how to represent; need to know which player and add a certain value that represents their move
+          newNode.path = position.path; //The path to new node is the path to the original + the original itself
+          newNode.path.push_back(position);
+          newNode.value = staticEval(player, newNode);
           successors.push_back(newNode);
           break;
         }
@@ -185,12 +189,12 @@ vector<Node> Connect4::moveGen(bool player, Node position)
     }
   }
 
-  cout << "Successors states: " << endl;
+  /*cout << "Successors states and their values: " << endl;
   for(Node succ : successors)
   {
     drawBoard(succ.state);
-  }
-  
+    cout << endl << "           VALUE: " << succ.value << endl;
+  }*/
   
   return successors;
 }
