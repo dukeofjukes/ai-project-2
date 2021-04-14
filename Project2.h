@@ -8,6 +8,15 @@ using namespace std;
 #define ROWS 6
 #define COLUMNS 7
 
+// FIXME: this might be necessary to differentiate between game over states
+enum Winner
+{
+  max,
+  min,
+  draw,
+  none
+};
+
 struct Node
 {
   int value;                                //The evaluation value of this state
@@ -23,15 +32,17 @@ struct Node
 class Connect4
 {
 public:
+  const bool MAX = true;
+  const bool MIN = false;
   // function declarations:
   Connect4();
   void playGame();
   void updateBoard(Node move);
   Node minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh);
-  bool deepEnough(Node position, int depth);
+  bool deepEnough(Node position, int depth, bool player);
   int staticEval(bool player, Node position); //TODO: for each group member, define evaluation functions (print tables to a file?)
   vector<Node> moveGen(bool player, Node position);
-  bool winState(Node position); // TODO: checks if position.state is a win state, gets called in deepEnough
+  Winner winningMove(Node position, bool player); // TODO: checks if position.state is a win state, gets called in playGame after every turn
   void drawBoard(vector<vector<int>>);
   char getPiece(int slot);
 

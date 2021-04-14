@@ -22,30 +22,46 @@ int main()
 Connect4::Connect4() // Constructor
 {
   board.resize(ROWS, vector<int>(COLUMNS,0)); // define board size
-  i=0;
+  i = 0;
   cout << "initial board:" << endl;
   drawBoard(board);
 }
 
 void Connect4::playGame()
 {
-  bool endCondition = false;
-  Node initialNode(board);
-  while(!endCondition)
-  {
-    Node move = minimaxAB(initialNode, 0, true, 100, -100);
+  vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
+  Winner w = none; // utilizing the winner enumerator as a flag
+
+  moveHistory.push_back(board);
+
+  Node move(board);
+  while (true) {
+    // FIXME: toggle a bool instead of passing MAX and MIN
+    move = minimaxAB(move, 0, MAX, 100, -100);
     updateBoard(move);
-    endCondition = true; //placeholder, 1 iteration. Need to check win condition/max turns (m*n)
+    moveHistory.push_back(move.state);
+    if ((w = winningMove(move, MAX)) != none) break;
+
+    move = minimaxAB(move, 0, MIN, 100, -100);
+    updateBoard(move);
+    moveHistory.push_back(move.state);
+    if ((w = winningMove(move, MIN)) != none) break;
   }
-  //check win?
+  // TODO: print Winner w
+  // FIXME: program hangs and never gets to a winningMove, I guess we need to implement staticEval for it to start working.
+
+  for (vector<vector<int>> m : moveHistory)
+  {
+    drawBoard(m);
+  }
 }
 
 void Connect4::updateBoard(Node move)
 {
-  cout << "UPDATING BOARD: setting row/col on board from move. Printing move state before board: " << endl;
   this->board = move.state;
   
-  cout << "Showing states on path: " << endl;
+  /*
+  cout << "game path as determined by minimax: " << endl;
   for (Node node : move.path)
   {
     drawBoard(node.state);
@@ -53,6 +69,7 @@ void Connect4::updateBoard(Node move)
   
   cout << "game board after one min max call (should reflect turn 1):" << endl;
   drawBoard(this->board);
+  */
 }
 
 // useThresh and passThresh alternate in the recursive call to reflect the relevant values for each player's best move evaluation
@@ -60,23 +77,23 @@ void Connect4::updateBoard(Node move)
 // position = a node that holds a state of the board and an associated eval value; in connect4, a players "position" is the state of the entire game (the board)
 Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh)
 {
-  this->i++; // FIXME: i no longer represents the depth in the tree, but the number of minimax calls being explored. more like the count of viable nodes idk
-  cout << "Entering minimaxAB" << endl;
-  cout << "Current state in recursion " << i << ": ";
-  drawBoard(position.state);
+  //this->i++; // FIXME: i no longer represents the depth in the tree, but the number of minimax calls being explored. more like the count of viable nodes idk
+  //cout << "Entering minimaxAB" << endl;
+  //cout << "Current state in recursion " << i << ": ";
+  //drawBoard(position.state);
 
-  if (deepEnough(position, depth)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
+  if (deepEnough(position, depth, player)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
   {
-    cout << "deepEnough returned true" << endl;
+    //cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
     // leave n.path empty, since it will be built by its recrursive parents
     return n;
   }
 
-  cout << "Generating successors" << endl;
+  //cout << "Generating successors" << endl;
   vector<Node> successors = moveGen(player, position); // generate another level of the tree
-  cout << "Successors generated" << endl;
+  //cout << "Successors generated" << endl;
 
   if (successors.empty())
   {
@@ -87,23 +104,23 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     return n;
   }
 
-  cout << "Iterating through successors" << endl;
+  //cout << "Iterating through successors" << endl;
   // FIXME: could combine these variables into a Node object, which gets updated in the loop and returned at the end?
   int newValue;
   vector<vector<int>> bestMove = position.state;
   vector<Node> bestPath;
   for (Node succ : successors)
   {
-    cout << "Inside iterator" << endl;
+    //cout << "Inside iterator" << endl;
     Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
-    cout << "result succ state: " << endl;
-    drawBoard(result_succ.state);
-    cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
+    //cout << "result succ state: " << endl;
+    //drawBoard(result_succ.state);
+    // cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value); // this node's newValue inherits its best child's best score
-    cout << "Testing newValue > passThresh" << endl;
+    //cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh) // we have found a better successor, we need to record this for pruning (next succs in loop) and to pass it up the tree if it is indeed the best.
     {
-      cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
+      //cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
       passThresh = newValue; // record the new best value as the limit for our pruning.
       bestPath = result_succ.path; // best path (so far) is now the path from this current succ to its children (succ.path).
       if (bestPath.empty())
@@ -112,14 +129,14 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
       }
       else
       {
-        bestPath.insert(bestPath.begin(), succ); // add succ to the beginning of its own path, since it will need to be returned to its parent as the best path
-        bestMove = result_succ.state;
+        bestPath.insert(bestPath.begin(), succ); // add succ to the beginning of its child's path, since it will need to be returned to its parent as the best path
+        bestMove = succ.state; // save this successor's state as the best move to make. the initial call will then return a Node with the best first move as the state
       }
     }
-    cout << "Testing passThresh > useThresh" << endl;
+    //cout << "Testing passThresh > useThresh" << endl;
     if (passThresh >= useThresh) // is passThresh (the best value) is not better than useThresh, we should stop examining the parent's branch
     {
-      cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
+      //cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
       break; // we'll get out of this loop and return our best results
     } // else, try the next successor
   }
@@ -130,9 +147,9 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   return n;
 }
 
-bool Connect4::deepEnough(Node position, int depth)
+bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 2 || winState(position))
+  if (depth == 2 /*|| winningMove(position) != none*/)
   {
     return true;
   }
@@ -185,25 +202,70 @@ vector<Node> Connect4::moveGen(bool player, Node position)
       }
     }
   }
-
-  /*cout << "Successors states and their values: " << endl;
-  for(Node succ : successors)
-  {
-    drawBoard(succ.state);
-    cout << endl << "           VALUE: " << succ.value << endl;
-  }*/
   
   return successors;
 }
 
 /*
-  checks if position.state is a winning condition (connected 4)
+  checks if position.state is a winning move (connected 4)
   returns: true of false depending on if the game is terminated at this state
 */
-bool Connect4::winState(Node position)
+Winner Connect4::winningMove(Node position, bool player)
 {
-  // TODO: define this
-  return false; // placeholder
+  int piece = (player) ? (1) : (-1); // define whose win we are searching for
+  Winner winningPlayer = player ? Winner::max : Winner::min; // FIXME: why am i getting errors in this function when I don't type Winner:: ?????
+  bool drawPossible = true; // flags false when an empty spot is found
+
+  // check horizontal:
+  for (int col = 0; col < COLUMNS - 3; col++)
+  {
+    for (int row = 0; row < ROWS; row++)
+    {
+      if (position.state[row][col] == 0)
+      {
+        drawPossible = false;
+        break; // FIXME: break in order to avoid unnecessary row evaluations?
+      }
+      if (position.state[row][col] == piece && position.state[row][col+1] == piece && position.state[row][col+2] == piece && position.state[row][col+3] == piece)
+        return winningPlayer;
+    }
+  }
+
+  // check vertical:
+  for (int col = 0; col < COLUMNS; col++)
+  {
+    for (int row = 0; row < ROWS - 3; row++)
+    {
+      if (position.state[row][col] == 0)
+        drawPossible = false;
+      if (position.state[row][col] == piece && position.state[row+1][col] == piece && position.state[row+2][col] == piece && position.state[row+3][col] == piece)
+        return winningPlayer;
+    }
+  }
+
+  // check positive slope diagonal:
+  for (int col = 0; col < COLUMNS - 3; col++)
+  {
+    for (int row = 0; row < ROWS - 3; row++)
+    {
+      if (position.state[row][col] == piece && position.state[row+1][col+1] == piece && position.state[row+2][col+2] == piece && position.state[row+3][col+3] == piece)
+        return winningPlayer;
+    }
+  }
+
+  for (int col = 0; col < COLUMNS - 3; col++)
+  {
+    for (int row = 3; row < ROWS; row++)
+    {
+      if (position.state[row][col] == piece && position.state[row-1][col+1] == piece && position.state[row-2][col+2] == piece && position.state[row-3][col+3] == piece)
+        return winningPlayer;
+    }
+  }
+
+  if (drawPossible)
+    return Winner::draw;
+
+  return Winner::none;
 }
 
 /*
