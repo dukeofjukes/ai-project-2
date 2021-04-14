@@ -31,21 +31,17 @@ void Connect4::playGame()
 {
   vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
   Winner w = none; // utilizing the winner enumerator as a flag
+  bool player = true; // toggles the player in the game loop
 
   moveHistory.push_back(board);
 
   Node move(board);
   while (true) {
-    // FIXME: toggle a bool instead of passing MAX and MIN
-    move = minimaxAB(move, 0, MAX, 100, -100);
+    move = minimaxAB(move, 0, player, 276, -276);
     updateBoard(move);
     moveHistory.push_back(move.state);
-    if ((w = winningMove(move, MAX)) != none) break;
-
-    move = minimaxAB(move, 0, MIN, 100, -100);
-    updateBoard(move);
-    moveHistory.push_back(move.state);
-    if ((w = winningMove(move, MIN)) != none) break;
+    if ((w = winningMove(move, player)) != none) break;
+    player = !player;
   }
   // TODO: print Winner w
   // FIXME: program hangs and never gets to a winningMove, I guess we need to implement staticEval for it to start working.
@@ -77,23 +73,23 @@ void Connect4::updateBoard(Node move)
 // position = a node that holds a state of the board and an associated eval value; in connect4, a players "position" is the state of the entire game (the board)
 Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh)
 {
-  //this->i++; // FIXME: i no longer represents the depth in the tree, but the number of minimax calls being explored. more like the count of viable nodes idk
-  //cout << "Entering minimaxAB" << endl;
-  //cout << "Current state in recursion " << i << ": ";
-  //drawBoard(position.state);
+  /*this->i++; // FIXME: i no longer represents the depth in the tree, but the number of minimax calls being explored. more like the count of viable nodes idk
+  cout << "Entering minimaxAB" << endl;
+  cout << "Current state in recursion " << i << ": ";
+  drawBoard(position.state);*/
 
   if (deepEnough(position, depth, player)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
-  {
-    //cout << "deepEnough returned true" << endl;
+  { // FIXME: might be able to delete the deepEnough function and just put it here
+    cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
     // leave n.path empty, since it will be built by its recrursive parents
     return n;
   }
 
-  //cout << "Generating successors" << endl;
+  cout << "Generating successors" << endl;
   vector<Node> successors = moveGen(player, position); // generate another level of the tree
-  //cout << "Successors generated" << endl;
+  cout << "Successors generated" << endl;
 
   if (successors.empty())
   {
@@ -104,20 +100,20 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     return n;
   }
 
-  //cout << "Iterating through successors" << endl;
+  cout << "Iterating through successors" << endl;
   // FIXME: could combine these variables into a Node object, which gets updated in the loop and returned at the end?
   int newValue;
   vector<vector<int>> bestMove = position.state;
   vector<Node> bestPath;
   for (Node succ : successors)
   {
-    //cout << "Inside iterator" << endl;
+    cout << "Inside iterator" << endl;
     Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
-    //cout << "result succ state: " << endl;
-    //drawBoard(result_succ.state);
+    cout << "result succ state: " << endl;
+    drawBoard(result_succ.state);
     // cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value); // this node's newValue inherits its best child's best score
-    //cout << "Testing newValue > passThresh" << endl;
+    cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh) // we have found a better successor, we need to record this for pruning (next succs in loop) and to pass it up the tree if it is indeed the best.
     {
       //cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
@@ -133,10 +129,10 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
         bestMove = succ.state; // save this successor's state as the best move to make. the initial call will then return a Node with the best first move as the state
       }
     }
-    //cout << "Testing passThresh > useThresh" << endl;
+    cout << "Testing passThresh > useThresh" << endl;
     if (passThresh >= useThresh) // is passThresh (the best value) is not better than useThresh, we should stop examining the parent's branch
     {
-      //cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
+      cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
       break; // we'll get out of this loop and return our best results
     } // else, try the next successor
   }
@@ -149,7 +145,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
 bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 2 /*|| winningMove(position) != none*/)
+  if (depth == 2 || winningMove(position, player) != Winner::none)
   {
     return true;
   }
@@ -160,10 +156,31 @@ bool Connect4::deepEnough(Node position, int depth, bool player)
   the static evaluation function, or the "heuristic"
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
-int Connect4::staticEval(bool player, Node position)
+/*int Connect4::staticEval(bool player, Node position)
 { //Defined to return a completely random evalutation number between 1 and 100
   int randEvalNumber = rand() % 100 + 1; //Number between 1 and 100
   return randEvalNumber;
+}*/
+//here is where the evaluation table is called
+int Connect4::staticEval(bool player, Node position) {
+  int utility = 138;
+  int sum = 0;
+  int pieceVal = (player) ? (1) : (-1);
+  for (int col = 0; col < COLUMNS; col++)
+  {
+    for (int row = 0; row < ROWS; row++)
+    {
+      if (position.state[row][col] == pieceVal)
+      {
+        sum += evaluationTable[row][col];
+      }
+      else if (position.state[row][col] == -pieceVal)
+      {
+        sum -= evaluationTable[row][col];
+      }
+    }
+  }
+  return utility + sum;
 }
 
 /*

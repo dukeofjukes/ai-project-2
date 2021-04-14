@@ -49,4 +49,10 @@ public:
 private:
   vector<vector<int>> board;
   int i;
+  int evaluationTable[ROWS][COLUMNS] = {{3, 4, 5, 7, 5, 4, 3}, // FIXME: just put this in the staticEval function?
+                      {4, 6, 8, 10, 8, 6, 4},
+                      {5, 8, 11, 13, 11, 8, 5}, 
+                      {5, 8, 11, 13, 11, 8, 5},
+                      {4, 6, 8, 10, 8, 6, 4},
+                      {3, 4, 5, 7, 5, 4, 3}};
 };
