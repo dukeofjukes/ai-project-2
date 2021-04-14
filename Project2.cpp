@@ -30,7 +30,7 @@ Connect4::Connect4() // Constructor
 void Connect4::playGame()
 {
   vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
-  Winner w = none; // utilizing the winner enumerator as a flag
+  WinState w = none; // utilizing the WinState enumerator as a flag
   bool player = true; // toggles the player in the game loop
 
   moveHistory.push_back(board);
@@ -43,8 +43,7 @@ void Connect4::playGame()
     if ((w = winningMove(move, player)) != none) break;
     player = !player;
   }
-  // TODO: print Winner w
-  // FIXME: program hangs and never gets to a winningMove, I guess we need to implement staticEval for it to start working.
+  // TODO: print WinState w
 
   for (vector<vector<int>> m : moveHistory)
   {
@@ -79,7 +78,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   drawBoard(position.state);*/
 
   if (deepEnough(position, depth, player)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
-  { // FIXME: might be able to delete the deepEnough function and just put it here
+  { // FIXME: need to look over what kind of value staticEval returns here.
     cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
@@ -101,7 +100,6 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   }
 
   cout << "Iterating through successors" << endl;
-  // FIXME: could combine these variables into a Node object, which gets updated in the loop and returned at the end?
   int newValue;
   vector<vector<int>> bestMove = position.state;
   vector<Node> bestPath;
@@ -145,7 +143,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
 bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 2 || winningMove(position, player) != Winner::none)
+  if (depth == 2 || winningMove(position, player) != WinState::none)
   {
     return true;
   }
@@ -227,10 +225,10 @@ vector<Node> Connect4::moveGen(bool player, Node position)
   checks if position.state is a winning move (connected 4)
   returns: true of false depending on if the game is terminated at this state
 */
-Winner Connect4::winningMove(Node position, bool player)
+WinState Connect4::winningMove(Node position, bool player)
 {
   int piece = (player) ? (1) : (-1); // define whose win we are searching for
-  Winner winningPlayer = player ? Winner::max : Winner::min; // FIXME: why am i getting errors in this function when I don't type Winner:: ?????
+  WinState winningPlayer = player ? WinState::max : WinState::min;
   bool drawPossible = true; // flags false when an empty spot is found
 
   // check horizontal:
@@ -280,9 +278,9 @@ Winner Connect4::winningMove(Node position, bool player)
   }
 
   if (drawPossible)
-    return Winner::draw;
+    return WinState::draw;
 
-  return Winner::none;
+  return WinState::none;
 }
 
 /*
