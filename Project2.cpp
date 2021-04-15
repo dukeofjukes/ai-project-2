@@ -44,7 +44,11 @@ void Connect4::playGame()
 
     updateBoard(move);
     moveHistory.push_back(move.state);
-    if ((w = winningMove(move, player)) != none) break;
+    if ((w = winningMove(move, player)) != none) {
+      cout <<" The apparent win state is: " << endl;
+      drawBoard(move.state);
+      break;
+    }
     player = !player;
     
     move.path.clear(); //FIXME: This prevents the program from slowing down and leaking a ton of mem, does this impact logic? is there a better way to prevent this?
@@ -152,7 +156,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
 bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 8 || winningMove(position, player) != WinState::none)
+  if (depth == 4 || winningMove(position, player) != WinState::none)
   {
     return true;
   }
