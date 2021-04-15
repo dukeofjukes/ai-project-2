@@ -11,7 +11,7 @@
 
 int main()
 {
-  srand(time(NULL)); // initialize rand() seed
+  //srand(time(NULL)); // initialize rand() seed
 
   Connect4 gameObj;
   gameObj.playGame();
@@ -38,13 +38,14 @@ void Connect4::playGame()
   moveHistory.push_back(board);
 
   Node move(board);
-  while (true && turnCount < maxMoves) {
+  while (true && turnCount < maxMoves)
+  {
     move = minimaxAB(move, 0, player, 276, -276);
-  
 
     updateBoard(move);
     moveHistory.push_back(move.state);
-    if ((w = winningMove(move, player)) != none) {
+    if ((w = winningMove(move, player)) != none)
+    {
       cout <<" The apparent win state is: " << endl;
       drawBoard(move.state);
       break;
@@ -54,9 +55,7 @@ void Connect4::playGame()
     move.path.clear(); //FIXME: This prevents the program from slowing down and leaking a ton of mem, does this impact logic? is there a better way to prevent this?
     turnCount++;      //FIXME: This prevents an infinite loop in the case of a draw, which, as of now, a depth higher than 2 always results in a draw.
   }
-  // TODO: print WinState w
-  cout <<" The apparent win state is: " << endl;
-  drawBoard(move.state);
+  // TODO: print WinState w game over message
 
   for (vector<vector<int>> m : moveHistory)
   {
@@ -75,8 +74,8 @@ void Connect4::updateBoard(Node move)
     drawBoard(node.state);
   }*/
   
-  cout << "Game board after updateBoard():" << endl;
-  drawBoard(this->board);
+  //cout << "Game board after updateBoard():" << endl;
+  //drawBoard(this->board);
   
 }
 
@@ -95,6 +94,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     //cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
+    cout << "end node static eval = " << n.value << endl;
     // leave n.path empty, since it will be built by its recrursive parents
     return n;
   }
@@ -129,6 +129,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     {
       //cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
       passThresh = newValue; // record the new best value as the limit for our pruning.
+      cout << "best value found" << passThresh << endl;
       bestPath = result_succ.path; // best path (so far) is now the path from this current succ to its children (succ.path).
       if (bestPath.empty())
       {
@@ -156,7 +157,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
 bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 4 || winningMove(position, player) != WinState::none)
+  if (depth == 2 || winningMove(position, player) != WinState::none)
   {
     return true;
   }
@@ -174,7 +175,7 @@ bool Connect4::deepEnough(Node position, int depth, bool player)
 }*/
 //here is where the evaluation table is called
 int Connect4::staticEval(bool player, Node position) {
-  int utility = 138;
+  int utility = 0; // FIXME: was 138, could probably just be 0 though
   int sum = 0;
   int pieceVal = (player) ? (1) : (-1);
   for (int col = 0; col < COLUMNS; col++)
@@ -185,13 +186,13 @@ int Connect4::staticEval(bool player, Node position) {
       {
         sum += evaluationTable[row][col];
       }
-      else if (position.state[row][col] == -pieceVal)
+      else if (position.state[row][col] == -(pieceVal))
       {
         sum -= evaluationTable[row][col];
       }
     }
   }
-  return utility + sum;
+  return (utility + sum) * pieceVal;
 }
 
 /*
@@ -309,8 +310,8 @@ void Connect4::drawBoard(vector<vector<int>> state)
     cout << " " << i + 1 << "  ";
     for (int k = 0; k < COLUMNS; k++)
     {
-      cout << "| " << getPiece(state[i][k]) << " "; //Pretty board for user view
-      //cout << "| " << state[i][k] << " "; //For debugging
+      cout << "| " << getPiece(state[i][k]) << " ";
+      //cout << "| " << state[i][k] << " "; // FIXME: For debugging
     }
     cout << "|" << endl;
     cout << line << endl;

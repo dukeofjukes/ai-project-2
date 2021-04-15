@@ -32,6 +32,7 @@ struct Node
 class Connect4
 {
 public:
+  // FIXME: might be unnecessary
   const bool MAX = true;
   const bool MIN = false;
   
