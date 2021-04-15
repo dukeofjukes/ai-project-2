@@ -41,7 +41,6 @@ void Connect4::playGame()
   while (true && turnCount < maxMoves)
   {
     move = minimaxAB(move, 0, player, 276, -276);
-
     updateBoard(move);
     moveHistory.push_back(move.state);
     if ((w = winningMove(move, player)) != none)
@@ -144,7 +143,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     //cout << "Testing passThresh > useThresh" << endl;
     if (passThresh >= useThresh) // is passThresh (the best value) is not better than useThresh, we should stop examining the parent's branch
     {
-      //cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
+      cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
       break; // we'll get out of this loop and return our best results
     } // else, try the next successor
   }
@@ -157,7 +156,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
 bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 2 || winningMove(position, player) != WinState::none)
+  if (depth == 4 || winningMove(position, player) != WinState::none)
   {
     return true;
   }
@@ -186,10 +185,10 @@ int Connect4::staticEval(bool player, Node position) {
       {
         sum += evaluationTable[row][col];
       }
-      else if (position.state[row][col] == -(pieceVal))
+      /*else if (position.state[row][col] == -(pieceVal))
       {
         sum -= evaluationTable[row][col];
-      }
+      }*/
     }
   }
   return (utility + sum) * pieceVal;
