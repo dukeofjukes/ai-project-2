@@ -203,31 +203,16 @@ vector<Node> Connect4::moveGen(bool player, Node position)
 {
   vector<Node> successors;
 
-  if (position.state[0][0] == 0 && position.state[0][1] == 0 && position.state[0][2] == 0 && position.state[0][3] == 0 && position.state[0][4] == 0 && position.state[0][5] == 0 && position.state[0][6] == 0) //If board is empty, successors is the entire first row
+  for (int col = 0; col < COLUMNS; col++)
   {
-    for (int col = 0; col < COLUMNS; col++)
+    for (int row = 0; row < ROWS; row++)
     {
-      for (int row = 0; row < 1; row++)
+      if (position.state[row][col] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
       {
         Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
         newNode.state[row][col] = (player) ? (1) : (-1); // add the player's piece that corresponds to this potential move
         successors.push_back(newNode); // add this succ to the successors list
-      }
-    }
-  }
-  else
-  { //The board isn't empty, find available moves
-    for (int col = 0; col < COLUMNS; col++)
-    {
-      for (int row = 0; row < ROWS; row++)
-      {
-        if (position.state[row][col] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
-        {
-          Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
-          newNode.state[row][col] = (player) ? (1) : (-1); // add the player's piece that corresponds to this potential move
-          successors.push_back(newNode); // add this succ to the successors list
-          break;
-        }
+        break;
       }
     }
   }
