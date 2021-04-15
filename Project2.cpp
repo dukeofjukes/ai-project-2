@@ -21,7 +21,7 @@ int main()
 
 Connect4::Connect4() // Constructor
 {
-  board.resize(ROWS, vector<int>(COLUMNS,0)); // define board size
+  board.resize(ROWS, vector<int>(COLUMNS,0)); // define board size and initialize with 0's in every board location
   i = 0;
   cout << "initial board:" << endl;
   drawBoard(board);
@@ -29,6 +29,8 @@ Connect4::Connect4() // Constructor
 
 void Connect4::playGame()
 {
+  int maxMoves = COLUMNS*ROWS;
+  int turnCount = 0;
   vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
   WinState w = none; // utilizing the WinState enumerator as a flag
   bool player = true; // toggles the player in the game loop
@@ -36,14 +38,21 @@ void Connect4::playGame()
   moveHistory.push_back(board);
 
   Node move(board);
-  while (true) {
+  while (true && turnCount < maxMoves) {
     move = minimaxAB(move, 0, player, 276, -276);
+  
+
     updateBoard(move);
     moveHistory.push_back(move.state);
     if ((w = winningMove(move, player)) != none) break;
     player = !player;
+    
+    move.path.clear(); //FIXME: This prevents the program from slowing down and leaking a ton of mem, does this impact logic? is there a better way to prevent this?
+    turnCount++;      //FIXME: This prevents an infinite loop in the case of a draw, which, as of now, a depth higher than 2 always results in a draw.
   }
   // TODO: print WinState w
+  cout <<" The apparent win state is: " << endl;
+  drawBoard(move.state);
 
   for (vector<vector<int>> m : moveHistory)
   {
@@ -60,11 +69,11 @@ void Connect4::updateBoard(Node move)
   for (Node node : move.path)
   {
     drawBoard(node.state);
-  }
+  }*/
   
-  cout << "game board after one min max call (should reflect turn 1):" << endl;
+  cout << "Game board after updateBoard():" << endl;
   drawBoard(this->board);
-  */
+  
 }
 
 // useThresh and passThresh alternate in the recursive call to reflect the relevant values for each player's best move evaluation
@@ -79,39 +88,39 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
   if (deepEnough(position, depth, player)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
   { // FIXME: need to look over what kind of value staticEval returns here.
-    cout << "deepEnough returned true" << endl;
+    //cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
     // leave n.path empty, since it will be built by its recrursive parents
     return n;
   }
 
-  cout << "Generating successors" << endl;
+  //cout << "Generating successors" << endl;
   vector<Node> successors = moveGen(player, position); // generate another level of the tree
-  cout << "Successors generated" << endl;
+  //cout << "Successors generated with vector size " << successors.size() << endl;
 
   if (successors.empty())
   {
-    cout << "Successors empty" << endl;
+    //cout << "Successors empty" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
     // leave n.path empty, since it will be built by its recursive parents
     return n;
   }
 
-  cout << "Iterating through successors" << endl;
+  //cout << "Iterating through successors" << endl;
   int newValue;
   vector<vector<int>> bestMove = position.state;
   vector<Node> bestPath;
   for (Node succ : successors)
   {
-    cout << "Inside iterator" << endl;
+    //cout << "Inside iterator" << endl;
     Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
-    cout << "result succ state: " << endl;
-    drawBoard(result_succ.state);
+    //cout << "result succ state: " << endl;
+    //drawBoard(result_succ.state);
     // cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value); // this node's newValue inherits its best child's best score
-    cout << "Testing newValue > passThresh" << endl;
+    //cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh) // we have found a better successor, we need to record this for pruning (next succs in loop) and to pass it up the tree if it is indeed the best.
     {
       //cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
@@ -127,10 +136,10 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
         bestMove = succ.state; // save this successor's state as the best move to make. the initial call will then return a Node with the best first move as the state
       }
     }
-    cout << "Testing passThresh > useThresh" << endl;
+    //cout << "Testing passThresh > useThresh" << endl;
     if (passThresh >= useThresh) // is passThresh (the best value) is not better than useThresh, we should stop examining the parent's branch
     {
-      cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
+      //cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
       break; // we'll get out of this loop and return our best results
     } // else, try the next successor
   }
@@ -143,7 +152,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
 bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  if (depth == 2 || winningMove(position, player) != WinState::none)
+  if (depth == 8 || winningMove(position, player) != WinState::none)
   {
     return true;
   }
