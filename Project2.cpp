@@ -18,82 +18,73 @@ int main()
 
   return 0;
 }
-
-Connect4::Connect4() // Constructor
+/*
+  Connect4 class constructor
+*/
+Connect4::Connect4()
 {
   board.resize(ROWS, vector<int>(COLUMNS,0)); // define board size and initialize with 0's in every board location
-  i = 0;
-  cout << "initial board:" << endl;
-  drawBoard(board);
 }
 
-void Connect4::playGame()
+// FIXME: to account for different games, pass parameters such as an int for each player's staticEval
+void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticEval, int minA, int minB */) 
 {
-  int maxMoves = COLUMNS*ROWS;
-  int turnCount = 0;
   vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
   WinState w = none; // utilizing the WinState enumerator as a flag
   bool player = true; // toggles the player in the game loop
+  int turnCount = 0;
+  int maxTurns = COLUMNS * ROWS; // the number of turns before a draw occurs
 
-  moveHistory.push_back(board);
+  moveHistory.push_back(board); // save initial (empty) board
 
-  Node move(board);
-  while (true && turnCount < maxMoves)
+  Node move(board); // setup the state as the initial board
+  while (turnCount < maxTurns)
   {
-    move = minimaxAB(move, 0, player, 276, -276);
-    updateBoard(move);
-    moveHistory.push_back(move.state);
-    if ((w = winningMove(move, player)) != none)
-    {
-      cout <<" The apparent win state is: " << endl;
-      drawBoard(move.state);
-      break;
-    }
-    player = !player;
+    move = minimaxAB(move, 2, player, 276, -276); // choose a move using minimax algorithm
+    this->board = move.state; // play the move on the board
+    moveHistory.push_back(move.state); // save the turn
     
-    move.path.clear(); //FIXME: This prevents the program from slowing down and leaking a ton of mem, does this impact logic? is there a better way to prevent this?
-    turnCount++;      //FIXME: This prevents an infinite loop in the case of a draw, which, as of now, a depth higher than 2 always results in a draw.
-  }
-  // TODO: print WinState w game over message
+    move.path.clear(); // free up memory
+    turnCount++;
 
+    // check if the move just played resulted in a win:
+    if ((w = winningMove(move, player)) != none)
+      break;
+    player = !player; // switch player for next turn
+  }
+
+  // print moveHistory of the game:
   for (vector<vector<int>> m : moveHistory)
   {
     drawBoard(m);
   }
+
+  // print winner:
+  if (w == WinState::max) {
+    cout << "GAME OVER: MAX (X) wins." << endl;
+  } else if (w == WinState::min) {
+    cout << "GAME OVER: MIN (O) wins." << endl;
+  } else {
+    cout << "GAME OVER: DRAW." << endl;
+  }
+
+  // free up memory:
+  this->board.clear();
+  moveHistory.clear();
 }
 
-void Connect4::updateBoard(Node move)
-{
-  this->board = move.state;
-  
-  /*
-  cout << "game path as determined by minimax: " << endl;
-  for (Node node : move.path)
-  {
-    drawBoard(node.state);
-  }*/
-  
-  //cout << "Game board after updateBoard():" << endl;
-  //drawBoard(this->board);
-  
-}
-
+// FIXME: clean up these comments when submitting:
 // useThresh and passThresh alternate in the recursive call to reflect the relevant values for each player's best move evaluation
 // player is true if it's player 1's (MAX) turn, false if player 2's (MIN) turn
 // position = a node that holds a state of the board and an associated eval value; in connect4, a players "position" is the state of the entire game (the board)
 Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh)
 {
-  /*this->i++; // FIXME: i no longer represents the depth in the tree, but the number of minimax calls being explored. more like the count of viable nodes idk
-  cout << "Entering minimaxAB" << endl;
-  cout << "Current state in recursion " << i << ": ";
-  drawBoard(position.state);*/
-
-  if (deepEnough(position, depth, player)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
+  if (deepEnough(position, depth)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
   { // FIXME: need to look over what kind of value staticEval returns here.
-    //cout << "deepEnough returned true" << endl;
+    cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
-    cout << "end node static eval = " << n.value << endl;
+    cout << "  end node static eval = " << n.value << endl;
     // leave n.path empty, since it will be built by its recrursive parents
     return n;
   }
@@ -118,17 +109,17 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   for (Node succ : successors)
   {
     //cout << "Inside iterator" << endl;
-    Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
+    Node result_succ = minimaxAB(succ, depth - 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
     //cout << "result succ state: " << endl;
-    //drawBoard(result_succ.state);
-    // cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
+    drawBoard(result_succ.state);
+    cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value); // this node's newValue inherits its best child's best score
     //cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh) // we have found a better successor, we need to record this for pruning (next succs in loop) and to pass it up the tree if it is indeed the best.
     {
       //cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
       passThresh = newValue; // record the new best value as the limit for our pruning.
-      cout << "best value found" << passThresh << endl;
+      //cout << "best value found" << passThresh << endl;
       bestPath = result_succ.path; // best path (so far) is now the path from this current succ to its children (succ.path).
       if (bestPath.empty())
       {
@@ -143,7 +134,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     //cout << "Testing passThresh > useThresh" << endl;
     if (passThresh >= useThresh) // is passThresh (the best value) is not better than useThresh, we should stop examining the parent's branch
     {
-      cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
+      //cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
       break; // we'll get out of this loop and return our best results
     } // else, try the next successor
   }
@@ -154,29 +145,32 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   return n;
 }
 
-bool Connect4::deepEnough(Node position, int depth, bool player)
+bool Connect4::deepEnough(Node position, int depth)
 {
-  if (depth == 4 || winningMove(position, player) != WinState::none)
-  {
+  // winningMove gets passed a dummy player bool since we don't need to know who won here.
+  if (depth <= 0 || winningMove(position, true) != WinState::none)
     return true;
-  }
   return false;
 }
+
+
+/* // FIXME: old random evaluation function:
+int Connect4::staticEval(bool player, Node position)
+{ //Defined to return a completely random evalutation number between 1 and 100
+  int randEvalNumber = rand() % 100 + 1; //Number between 1 and 100
+  return randEvalNumber;
+}
+*/
 
 /*
   the static evaluation function, or the "heuristic"
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
-/*int Connect4::staticEval(bool player, Node position)
-{ //Defined to return a completely random evalutation number between 1 and 100
-  int randEvalNumber = rand() % 100 + 1; //Number between 1 and 100
-  return randEvalNumber;
-}*/
-//here is where the evaluation table is called
 int Connect4::staticEval(bool player, Node position) {
-  int utility = 0; // FIXME: was 138, could probably just be 0 though
+  int utility = 138;
   int sum = 0;
   int pieceVal = (player) ? (1) : (-1);
+
   for (int col = 0; col < COLUMNS; col++)
   {
     for (int row = 0; row < ROWS; row++)
@@ -185,13 +179,13 @@ int Connect4::staticEval(bool player, Node position) {
       {
         sum += evaluationTable[row][col];
       }
-      /*else if (position.state[row][col] == -(pieceVal))
+      else if (position.state[row][col] == -(pieceVal))
       {
         sum -= evaluationTable[row][col];
-      }*/
+      }
     }
   }
-  return (utility + sum) * pieceVal;
+  return utility + sum;
 }
 
 /*
@@ -221,24 +215,18 @@ vector<Node> Connect4::moveGen(bool player, Node position)
 
 /*
   checks if position.state is a winning move (connected 4)
-  returns: true of false depending on if the game is terminated at this state
+  returns: the specific WinState (max, min, none) that the state represents
 */
 WinState Connect4::winningMove(Node position, bool player)
 {
   int piece = (player) ? (1) : (-1); // define whose win we are searching for
   WinState winningPlayer = player ? WinState::max : WinState::min;
-  bool drawPossible = true; // flags false when an empty spot is found
 
   // check horizontal:
   for (int col = 0; col < COLUMNS - 3; col++)
   {
     for (int row = 0; row < ROWS; row++)
     {
-      if (position.state[row][col] == 0)
-      {
-        drawPossible = false;
-        break; // FIXME: break in order to avoid unnecessary row evaluations?
-      }
       if (position.state[row][col] == piece && position.state[row][col+1] == piece && position.state[row][col+2] == piece && position.state[row][col+3] == piece)
         return winningPlayer;
     }
@@ -249,8 +237,6 @@ WinState Connect4::winningMove(Node position, bool player)
   {
     for (int row = 0; row < ROWS - 3; row++)
     {
-      if (position.state[row][col] == 0)
-        drawPossible = false;
       if (position.state[row][col] == piece && position.state[row+1][col] == piece && position.state[row+2][col] == piece && position.state[row+3][col] == piece)
         return winningPlayer;
     }
@@ -266,6 +252,7 @@ WinState Connect4::winningMove(Node position, bool player)
     }
   }
 
+  // check negative slope diagonal:
   for (int col = 0; col < COLUMNS - 3; col++)
   {
     for (int row = 3; row < ROWS; row++)
@@ -274,9 +261,6 @@ WinState Connect4::winningMove(Node position, bool player)
         return winningPlayer;
     }
   }
-
-  if (drawPossible)
-    return WinState::draw;
 
   return WinState::none;
 }
@@ -295,7 +279,6 @@ void Connect4::drawBoard(vector<vector<int>> state)
     for (int k = 0; k < COLUMNS; k++)
     {
       cout << "| " << getPiece(state[i][k]) << " ";
-      //cout << "| " << state[i][k] << " "; // FIXME: For debugging
     }
     cout << "|" << endl;
     cout << line << endl;

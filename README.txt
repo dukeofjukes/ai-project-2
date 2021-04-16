@@ -12,7 +12,7 @@ Jeff Wilson
 
 [COMPILE AND RUN]
 Use the following command to compile the program:
-g++ -std=c++11 Project2.h Project2.cpp -o p2
+g++ -std=c++11 Project2.h Project2.cpp -o p2.out
 
 Then, use the following command to run it:
-./p2
+./p2.out
