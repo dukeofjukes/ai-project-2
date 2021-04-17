@@ -67,7 +67,7 @@ void Connect4::playGame()
   while (turnCount < maxTurns)
   {
     // MAX's turn:
-    move = minimaxAB(move, this->maxDepth, MAX, this->maxThresh, -(this->maxThresh)); // choose a move using minimax algorithm
+    move = minimaxAB(move, maxDepth, MAX, maxThresh, -(maxThresh)); // choose a move using minimax algorithm
     board = move.state; // play the move on the board
     moveHistory.push_back(move.state); // save the turn
     
@@ -79,7 +79,7 @@ void Connect4::playGame()
       break;
 
     // MIN's turn:
-    move = minimaxAB(move, this->minDepth, MIN, this->minThresh, -(this->minThresh)); // choose a move using minimax algorithm
+    move = minimaxAB(move, minDepth, MIN, minThresh, -(minThresh)); // choose a move using minimax algorithm
     board = move.state; // play the move on the board
     moveHistory.push_back(move.state); // save the turn
     
