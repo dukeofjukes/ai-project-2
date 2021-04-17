@@ -30,7 +30,7 @@ Connect4::Connect4()
 void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticEval, int minA, int minB */) 
 {
   vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
-  WinState w = none; // utilizing the WinState enumerator as a flag
+  int winState = 0; // flags +1 for MAX victory, -1 for MIN victory
   bool player = true; // toggles the player in the game loop
   int turnCount = 0;
   int maxTurns = COLUMNS * ROWS; // the number of turns before a draw occurs
@@ -40,7 +40,7 @@ void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticE
   Node move(board); // setup the state as the initial board
   while (turnCount < maxTurns)
   {
-    move = minimaxAB(move, 2, player, 276, -276); // choose a move using minimax algorithm
+    move = minimaxAB(move, 0, player, 276, -276); // choose a move using minimax algorithm
     this->board = move.state; // play the move on the board
     moveHistory.push_back(move.state); // save the turn
     
@@ -48,7 +48,7 @@ void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticE
     turnCount++;
 
     // check if the move just played resulted in a win:
-    if ((w = winningMove(move, player)) != none)
+    if ((winState = winningMove(move, player)) != 0)
       break;
     player = !player; // switch player for next turn
   }
@@ -60,9 +60,9 @@ void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticE
   }
 
   // print winner:
-  if (w == WinState::max) {
+  if (winState > 0) {
     cout << "GAME OVER: MAX (X) wins." << endl;
-  } else if (w == WinState::min) {
+  } else if (winState < 0) {
     cout << "GAME OVER: MIN (O) wins." << endl;
   } else {
     cout << "GAME OVER: DRAW." << endl;
@@ -109,7 +109,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   for (Node succ : successors)
   {
     //cout << "Inside iterator" << endl;
-    Node result_succ = minimaxAB(succ, depth - 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
+    Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
     //cout << "result succ state: " << endl;
     drawBoard(result_succ.state);
     cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
@@ -148,7 +148,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 bool Connect4::deepEnough(Node position, int depth)
 {
   // winningMove gets passed a dummy player bool since we don't need to know who won here.
-  if (depth <= 0 || winningMove(position, true) != WinState::none)
+  if (depth >= this->maxDepth || winningMove(position, true) != 0)
     return true;
   return false;
 }
@@ -215,12 +215,11 @@ vector<Node> Connect4::moveGen(bool player, Node position)
 
 /*
   checks if position.state is a winning move (connected 4)
-  returns: the specific WinState (max, min, none) that the state represents
+  returns: the specific win state (max == +1, min == -1, none == 0) found in position.state
 */
-WinState Connect4::winningMove(Node position, bool player)
+int Connect4::winningMove(Node position, bool player)
 {
   int piece = (player) ? (1) : (-1); // define whose win we are searching for
-  WinState winningPlayer = player ? WinState::max : WinState::min;
 
   // check horizontal:
   for (int col = 0; col < COLUMNS - 3; col++)
@@ -228,7 +227,7 @@ WinState Connect4::winningMove(Node position, bool player)
     for (int row = 0; row < ROWS; row++)
     {
       if (position.state[row][col] == piece && position.state[row][col+1] == piece && position.state[row][col+2] == piece && position.state[row][col+3] == piece)
-        return winningPlayer;
+        return piece;
     }
   }
 
@@ -238,7 +237,7 @@ WinState Connect4::winningMove(Node position, bool player)
     for (int row = 0; row < ROWS - 3; row++)
     {
       if (position.state[row][col] == piece && position.state[row+1][col] == piece && position.state[row+2][col] == piece && position.state[row+3][col] == piece)
-        return winningPlayer;
+        return piece;
     }
   }
 
@@ -248,7 +247,7 @@ WinState Connect4::winningMove(Node position, bool player)
     for (int row = 0; row < ROWS - 3; row++)
     {
       if (position.state[row][col] == piece && position.state[row+1][col+1] == piece && position.state[row+2][col+2] == piece && position.state[row+3][col+3] == piece)
-        return winningPlayer;
+        return piece;
     }
   }
 
@@ -258,11 +257,11 @@ WinState Connect4::winningMove(Node position, bool player)
     for (int row = 3; row < ROWS; row++)
     {
       if (position.state[row][col] == piece && position.state[row-1][col+1] == piece && position.state[row-2][col+2] == piece && position.state[row-3][col+3] == piece)
-        return winningPlayer;
+        return piece;
     }
   }
 
-  return WinState::none;
+  return 0; // represents no victory
 }
 
 /*
