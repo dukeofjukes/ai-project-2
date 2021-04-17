@@ -11,27 +11,53 @@
 
 int main()
 {
-  //srand(time(NULL)); // initialize rand() seed
+  Connect4 game(2, 2, 1, 1, 276, 276);
+  game.playGame();
 
-  Connect4 gameObj;
-  gameObj.playGame();
+  // TODO: reset and play each specified game
 
   return 0;
 }
+
 /*
   Connect4 class constructor
 */
-Connect4::Connect4()
+Connect4::Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh)
 {
   board.resize(ROWS, vector<int>(COLUMNS,0)); // define board size and initialize with 0's in every board location
+
+  // set each player's minimax performance parameters:
+  this->maxDepth = maxDepth;
+  this->minDepth = minDepth;
+  this->maxStaticEval = maxStaticEval;
+  this->minStaticEval = minStaticEval;
+  this->maxThresh = maxThresh;
+  this->minThresh = minThresh;
 }
 
-// FIXME: to account for different games, pass parameters such as an int for each player's staticEval
-void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticEval, int minA, int minB */) 
+/*
+  Resets the relevant class variables to prepare for a new game.
+*/
+void Connect4::resetGame(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh) {
+  board.clear();
+  board.resize(ROWS, vector<int>(COLUMNS,0));
+
+  // set each player's minimax performance parameters:
+  this->maxDepth = maxDepth;
+  this->minDepth = minDepth;
+  this->maxStaticEval = maxStaticEval;
+  this->minStaticEval = minStaticEval;
+  this->maxThresh = maxThresh;
+  this->minThresh = minThresh;
+}
+
+/*
+  Plays and displays every turn of a single Connect4 game.
+*/
+void Connect4::playGame() 
 {
   vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
   int winState = 0; // flags +1 for MAX victory, -1 for MIN victory
-  bool player = true; // toggles the player in the game loop
   int turnCount = 0;
   int maxTurns = COLUMNS * ROWS; // the number of turns before a draw occurs
 
@@ -40,17 +66,29 @@ void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticE
   Node move(board); // setup the state as the initial board
   while (turnCount < maxTurns)
   {
-    move = minimaxAB(move, 0, player, 276, -276); // choose a move using minimax algorithm
-    this->board = move.state; // play the move on the board
+    // MAX's turn:
+    move = minimaxAB(move, this->maxDepth, MAX, this->maxThresh, -(this->maxThresh)); // choose a move using minimax algorithm
+    board = move.state; // play the move on the board
     moveHistory.push_back(move.state); // save the turn
     
     move.path.clear(); // free up memory
     turnCount++;
 
     // check if the move just played resulted in a win:
-    if ((winState = winningMove(move, player)) != 0)
+    if ((winState = winningMove(move, MAX)) != 0)
       break;
-    player = !player; // switch player for next turn
+
+    // MIN's turn:
+    move = minimaxAB(move, this->minDepth, MIN, this->minThresh, -(this->minThresh)); // choose a move using minimax algorithm
+    board = move.state; // play the move on the board
+    moveHistory.push_back(move.state); // save the turn
+    
+    move.path.clear(); // free up memory
+    turnCount++;
+
+    // check if the move just played resulted in a win:
+    if ((winState = winningMove(move, MIN)) != 0)
+      break;
   }
 
   // print moveHistory of the game:
@@ -69,7 +107,7 @@ void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticE
   }
 
   // free up memory:
-  this->board.clear();
+  board.clear();
   moveHistory.clear();
 }
 
@@ -79,26 +117,43 @@ void Connect4::playGame(/* int maxStaticEval, int maxA, int maxB, int minStaticE
 // position = a node that holds a state of the board and an associated eval value; in connect4, a players "position" is the state of the entire game (the board)
 Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh)
 {
-  if (deepEnough(position, depth)) // represents the case in which a final node depth is reached. will return from this final recursive call and begin constructing a path from the best node
-  { // FIXME: need to look over what kind of value staticEval returns here.
-    cout << "deepEnough returned true" << endl;
+  if (deepEnough(position, depth, player))
+  {
+    //cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
-    cout << "  end node static eval = " << n.value << endl;
-    // leave n.path empty, since it will be built by its recrursive parents
+
+    /* // FIXME: placeholder of how different staticEvals will be used
+    if (player == MAX)
+    {
+      switch(maxStaticEval)
+      {
+        case 1: n.value = staticEval1(player, n);
+        case 2: n.value = staticEval2(player, n);
+        case 3: n.value = staticEval3(player, n);
+      }
+    }
+    else
+    {
+      switch(minStaticEval)
+      {
+        case 1: n.value = staticEval1(player, n);
+        case 2: n.value = staticEval2(player, n);
+        case 3: n.value = staticEval3(player, n);
+      }
+    }
+    */
+
+    //cout << "  end node static eval = " << n.value << endl;
     return n;
   }
 
-  //cout << "Generating successors" << endl;
   vector<Node> successors = moveGen(player, position); // generate another level of the tree
-  //cout << "Successors generated with vector size " << successors.size() << endl;
 
   if (successors.empty())
   {
-    //cout << "Successors empty" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
-    // leave n.path empty, since it will be built by its recursive parents
     return n;
   }
 
@@ -109,10 +164,10 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   for (Node succ : successors)
   {
     //cout << "Inside iterator" << endl;
-    Node result_succ = minimaxAB(succ, depth + 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
+    Node result_succ = minimaxAB(succ, depth - 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
     //cout << "result succ state: " << endl;
-    drawBoard(result_succ.state);
-    cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
+    //drawBoard(result_succ.state);
+    //cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value); // this node's newValue inherits its best child's best score
     //cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh) // we have found a better successor, we need to record this for pruning (next succs in loop) and to pass it up the tree if it is indeed the best.
@@ -145,10 +200,10 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   return n;
 }
 
-bool Connect4::deepEnough(Node position, int depth)
+bool Connect4::deepEnough(Node position, int depth, bool player)
 {
-  // winningMove gets passed a dummy player bool since we don't need to know who won here.
-  if (depth >= this->maxDepth || winningMove(position, true) != 0)
+  // depth is set to decrement for easier initialization of different depths per player
+  if (depth <= 0 || winningMove(position, player) != 0 )
     return true;
   return false;
 }
@@ -214,7 +269,7 @@ vector<Node> Connect4::moveGen(bool player, Node position)
 }
 
 /*
-  checks if position.state is a winning move (connected 4)
+  checks if position.state is a winning move for the player
   returns: the specific win state (max == +1, min == -1, none == 0) found in position.state
 */
 int Connect4::winningMove(Node position, bool player)
