@@ -11,16 +11,61 @@
 
 int main()
 {
-  Connect4 game(2, 2, 1, 1, 276, 276);
-  game.playGame();
+  char quitInput;
+  bool quit = false;
+  int gameNumber = 1;
+  int maxDepth, minDepth = 2;
+  int maxStaticEval, minStaticEval = 1;
+  int maxThresh, minThresh = 276;
 
-  // TODO: reset and play each specified game
+  Connect4 game(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
+
+  cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
+  while (!quit) {
+    cout << endl << "Set game " << gameNumber << " parameters:" << endl;
+    cout << "  Player MAX's cutoff depth (choose 2, 4, or 8): ";
+    cin >> maxDepth;
+    cout << "  Player MIN's cutoff depth (choose 2, 4, or 8): ";
+    cin >> minDepth;
+    cout << "  Player MAX's evaluation function (choose 1, 2, or 3): ";
+    cin >> maxStaticEval;
+    cout << "  Player MIN's evaluation function (choose 1, 2, or 3): ";
+    cin >> minStaticEval;
+
+    // FIXME: set threshold values once eval functions are done
+    if (maxStaticEval == 1)
+      maxThresh = 276;
+    else if (maxStaticEval == 2)
+      maxThresh = 500;
+    else
+      maxThresh = 500;
+    
+    if (minStaticEval == 1)
+      minThresh = 276;
+    else if (minStaticEval == 2)
+      minThresh = 500;
+    else
+      minThresh = 500;
+
+    game.resetGame(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
+
+    cout << endl << "GAME " << gameNumber << ":" << endl;
+    game.playGame();
+    gameNumber++;
+
+    cout << "Play another game (choose Y/N)? ";
+    cin >> quitInput;
+    if (quitInput == 'n' || quitInput == 'N')
+      break;
+  }
+
+  // FIXME: print stats
 
   return 0;
 }
 
 /*
-  Connect4 class constructor
+  Connect4 class constructor (with parameters)
 */
 Connect4::Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh)
 {
@@ -56,20 +101,18 @@ void Connect4::resetGame(int maxDepth, int minDepth, int maxStaticEval, int minS
 */
 void Connect4::playGame() 
 {
-  vector<vector<vector<int>>> moveHistory; // stores the history of a game to print at the end of a game.
   int winState = 0; // flags +1 for MAX victory, -1 for MIN victory
   int turnCount = 0;
   int maxTurns = COLUMNS * ROWS; // the number of turns before a draw occurs
-
-  moveHistory.push_back(board); // save initial (empty) board
 
   Node move(board); // setup the state as the initial board
   while (turnCount < maxTurns)
   {
     // MAX's turn:
+    cout << "MAX'S (X) TURN:" << endl;
     move = minimaxAB(move, maxDepth, MAX, maxThresh, -(maxThresh)); // choose a move using minimax algorithm
     board = move.state; // play the move on the board
-    moveHistory.push_back(move.state); // save the turn
+    drawBoard(board); // display to screen
     
     move.path.clear(); // free up memory
     turnCount++;
@@ -79,9 +122,10 @@ void Connect4::playGame()
       break;
 
     // MIN's turn:
+    cout << "MIN'S (O) TURN:" << endl;
     move = minimaxAB(move, minDepth, MIN, minThresh, -(minThresh)); // choose a move using minimax algorithm
     board = move.state; // play the move on the board
-    moveHistory.push_back(move.state); // save the turn
+    drawBoard(board); // display to screen
     
     move.path.clear(); // free up memory
     turnCount++;
@@ -89,12 +133,6 @@ void Connect4::playGame()
     // check if the move just played resulted in a win:
     if ((winState = winningMove(move, MIN)) != 0)
       break;
-  }
-
-  // print moveHistory of the game:
-  for (vector<vector<int>> m : moveHistory)
-  {
-    drawBoard(m);
   }
 
   // print winner:
@@ -108,7 +146,6 @@ void Connect4::playGame()
 
   // free up memory:
   board.clear();
-  moveHistory.clear();
 }
 
 // FIXME: clean up these comments when submitting:
@@ -122,28 +159,6 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     //cout << "deepEnough returned true" << endl;
     Node n(position.state);
     n.value = staticEval(player, n); // calculate the score of this move
-
-    /* // FIXME: placeholder of how different staticEvals will be used
-    if (player == MAX)
-    {
-      switch(maxStaticEval)
-      {
-        case 1: n.value = staticEval1(player, n);
-        case 2: n.value = staticEval2(player, n);
-        case 3: n.value = staticEval3(player, n);
-      }
-    }
-    else
-    {
-      switch(minStaticEval)
-      {
-        case 1: n.value = staticEval1(player, n);
-        case 2: n.value = staticEval2(player, n);
-        case 3: n.value = staticEval3(player, n);
-      }
-    }
-    */
-
     //cout << "  end node static eval = " << n.value << endl;
     return n;
   }
@@ -219,28 +234,38 @@ int Connect4::staticEval(bool player, Node position)
 
 /*
   the static evaluation function, or the "heuristic"
+  contains three seperate evaluation functions developed by each group member, nested in a case-switch
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
 int Connect4::staticEval(bool player, Node position) {
-  int utility = 138;
-  int sum = 0;
-  int pieceVal = (player) ? (1) : (-1);
+  int playerStaticEval = player ? maxStaticEval : minStaticEval; // switch case variable used below
 
-  for (int col = 0; col < COLUMNS; col++)
-  {
-    for (int row = 0; row < ROWS; row++)
-    {
-      if (position.state[row][col] == pieceVal)
+  // uses the proper evaluation function depending on what was defined for this player for this game
+  switch(playerStaticEval) {
+    case 1: /* AUTHOR: Brandon Burtchell */
+      int utility = 138;
+      int sum = 0;
+      int pieceVal = (player) ? (1) : (-1);
+
+      for (int col = 0; col < COLUMNS; col++)
       {
-        sum += evaluationTable[row][col];
+        for (int row = 0; row < ROWS; row++)
+        {
+          if (position.state[row][col] == pieceVal)
+          {
+            sum += evaluationTable[row][col];
+          }
+          else if (position.state[row][col] == -(pieceVal))
+          {
+            sum -= evaluationTable[row][col];
+          }
+        }
       }
-      else if (position.state[row][col] == -(pieceVal))
-      {
-        sum -= evaluationTable[row][col];
-      }
-    }
+      return utility + sum;
+    //case 2: /* AUTHOR: Joe McAdams */
+    //case 3: /* AUTHOR: Jeff Wilson */
   }
-  return utility + sum;
+  
 }
 
 /*
@@ -337,7 +362,7 @@ void Connect4::drawBoard(vector<vector<int>> state)
     cout << "|" << endl;
     cout << line << endl;
   }
-  cout << "      1   2   3   4   5   6   7" << endl;
+  cout << "      1   2   3   4   5   6   7" << endl << endl;
 }
 
 /*
