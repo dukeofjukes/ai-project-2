@@ -13,16 +13,13 @@ int main()
 {
   char quitInput;
   bool quit = false;
-  int gameNumber = 1;
   int maxDepth, minDepth = 2;
   int maxStaticEval, minStaticEval = 1;
   int maxThresh, minThresh = 276;
 
-  Connect4 game(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
-
   cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
   while (!quit) {
-    cout << endl << "Set game " << gameNumber << " parameters:" << endl;
+    cout << endl << "Set game parameters:" << endl;
     cout << "  Player MAX's cutoff depth (choose 2, 4, or 8): ";
     cin >> maxDepth;
     cout << "  Player MIN's cutoff depth (choose 2, 4, or 8): ";
@@ -47,11 +44,17 @@ int main()
     else
       minThresh = 500;
 
-    game.resetGame(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
+    Connect4 game(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
 
-    cout << endl << "GAME " << gameNumber << ":" << endl;
+    cout << endl << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
     game.playGame();
-    gameNumber++;
+
+    // print game statistics:
+    cout << endl;
+    cout << "GAME " << Connect4::gameCounter << " STATISTICS:" << endl;
+    cout << "  Number of turns: " << game.turnCounter << endl;
+    cout << "  Nodes created:   " << game.nodeCounter << endl;
+    cout << "  Game duration:   " << game.gameDuration << " msec" << endl;
 
     cout << "Play another game (choose Y/N)? ";
     cin >> quitInput;
@@ -59,32 +62,34 @@ int main()
       break;
   }
 
-  // FIXME: print stats
+  // print overall statistics:
+  cout << endl;
+  cout << "OVERALL STATISTICS: " << endl;
+  cout << "  Total games:  " << Connect4::gameCounter << endl;
+  cout << "  MAX (X) wins: " << Connect4::maxWins << endl;
+  cout << "  MIN (O) wins: " << Connect4::minWins << endl;
+  cout << "  Draws:        " << Connect4::draws << endl;
 
   return 0;
 }
+
+// Connect4 static variable initialization:
+int Connect4::maxWins = 0;
+int Connect4::minWins = 0;
+int Connect4::draws = 0;
+int Connect4::gameCounter = 0;
 
 /*
   Connect4 class constructor (with parameters)
 */
 Connect4::Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh)
 {
-  board.resize(ROWS, vector<int>(COLUMNS,0)); // define board size and initialize with 0's in every board location
+  // initialize statistic variables:
+  this->turnCounter = 0;
+  this->nodeCounter = 0;
+  this->gameDuration = 0;
 
-  // set each player's minimax performance parameters:
-  this->maxDepth = maxDepth;
-  this->minDepth = minDepth;
-  this->maxStaticEval = maxStaticEval;
-  this->minStaticEval = minStaticEval;
-  this->maxThresh = maxThresh;
-  this->minThresh = minThresh;
-}
-
-/*
-  Resets the relevant class variables to prepare for a new game.
-*/
-void Connect4::resetGame(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh) {
-  board.clear();
+  // define board size and initialize with 0's in every board location
   board.resize(ROWS, vector<int>(COLUMNS,0));
 
   // set each player's minimax performance parameters:
@@ -102,46 +107,58 @@ void Connect4::resetGame(int maxDepth, int minDepth, int maxStaticEval, int minS
 void Connect4::playGame() 
 {
   int winState = 0; // flags +1 for MAX victory, -1 for MIN victory
-  int turnCount = 0;
   int maxTurns = COLUMNS * ROWS; // the number of turns before a draw occurs
 
+  this->gameCounter++;
+  auto start = chrono::steady_clock::now();
   Node move(board); // setup the state as the initial board
-  while (turnCount < maxTurns)
+  this->nodeCounter++;
+  while (turnCounter < maxTurns)
   {
     // MAX's turn:
-    cout << "MAX'S (X) TURN:" << endl;
+    this->turnCounter++;
+    cout << "MAX'S (X) TURN (" << turnCounter << "):" << endl;
     move = minimaxAB(move, maxDepth, MAX, maxThresh, -(maxThresh)); // choose a move using minimax algorithm
     board = move.state; // play the move on the board
     drawBoard(board); // display to screen
     
     move.path.clear(); // free up memory
-    turnCount++;
 
     // check if the move just played resulted in a win:
     if ((winState = winningMove(move, MAX)) != 0)
       break;
 
     // MIN's turn:
-    cout << "MIN'S (O) TURN:" << endl;
+    this->turnCounter++;
+    cout << "MIN'S (O) TURN (" << turnCounter << "):" << endl;
     move = minimaxAB(move, minDepth, MIN, minThresh, -(minThresh)); // choose a move using minimax algorithm
     board = move.state; // play the move on the board
     drawBoard(board); // display to screen
     
     move.path.clear(); // free up memory
-    turnCount++;
 
     // check if the move just played resulted in a win:
     if ((winState = winningMove(move, MIN)) != 0)
       break;
   }
+  auto end = chrono::steady_clock::now();
+  this->gameDuration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
   // print winner:
-  if (winState > 0) {
+  if (winState > 0)
+  {
     cout << "GAME OVER: MAX (X) wins." << endl;
-  } else if (winState < 0) {
+    this->maxWins++;
+  }
+  else if (winState < 0)
+  {
     cout << "GAME OVER: MIN (O) wins." << endl;
-  } else {
+    this->minWins++;
+  }
+  else
+  {
     cout << "GAME OVER: DRAW." << endl;
+    this->draws++;
   }
 
   // free up memory:
@@ -280,11 +297,12 @@ vector<Node> Connect4::moveGen(bool player, Node position)
   {
     for (int row = 0; row < ROWS; row++)
     {
-      if (position.state[row][col] == 0) //Found the spot that isn't occupied in board; add to successors, break loop and analyze the next column
+      if (position.state[row][col] == 0) // found the spot that isn't occupied in board
       {
-        Node newNode = position; //Make a new node to contain the potential state. Potential state is the state of position + the move
+        Node newNode = position; // make a new node to contain the potential state. Potential state is the state of position + the move
         newNode.state[row][col] = (player) ? (1) : (-1); // add the player's piece that corresponds to this potential move
         successors.push_back(newNode); // add this succ to the successors list
+        this->nodeCounter++;
         break;
       }
     }

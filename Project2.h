@@ -3,6 +3,8 @@
 #include <vector>
 #include <tuple>
 #include <time.h>
+#include <chrono>
+
 using namespace std;
 
 #define ROWS 6
@@ -23,16 +25,25 @@ struct Node
 class Connect4
 {
 public:
-  // TODO: create static counters to track stats and efficiency: i.e. nodesCreated, maxWins, minWins, draws, etc.
+  // statistic variables:
+  static int maxWins;
+  static int minWins;
+  static int draws;
+  static int gameCounter;
+  int turnCounter;
+  long int nodeCounter;
+  int gameDuration;
 
+  // player boolean names:
   const bool MAX = true;
   const bool MIN = false;
   
+  // public functions:
   Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh);
-  void resetGame(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh);
   void playGame();
 
 private:
+  // the game object's board:
   vector<vector<int>> board;
   
   // minimax performance parameters for different games:
@@ -51,9 +62,9 @@ private:
                                         {4, 6, 8, 10, 8, 6, 4},
                                         {3, 4, 5, 7, 5, 4, 3}};
 
+  // private functions:
   Node minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh);
   bool deepEnough(Node position, int depth, bool player);
-  // FIXME: once we start implementing more evals and different games, should we print to a file?
   int staticEval(bool player, Node position);
   vector<Node> moveGen(bool player, Node position);
   int winningMove(Node position, bool player);
