@@ -13,9 +13,7 @@ int main()
 {
   char quitInput;
   bool quit = false;
-  int maxDepth, minDepth = 2;
-  int maxStaticEval, minStaticEval = 1;
-  int maxThresh, minThresh = 276;
+  int maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh;
 
   cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
   while (!quit) {
@@ -33,14 +31,14 @@ int main()
     if (maxStaticEval == 1)
       maxThresh = 276;
     else if (maxStaticEval == 2)
-      maxThresh = 500;
+      maxThresh = 1000;
     else
       maxThresh = 500;
     
     if (minStaticEval == 1)
       minThresh = 276;
     else if (minStaticEval == 2)
-      minThresh = 500;
+      minThresh = 1000;
     else
       minThresh = 500;
 
@@ -255,15 +253,27 @@ int Connect4::staticEval(bool player, Node position)
   returns: a number respresenting the goodness of position from the standpoint of the player
 */
 int Connect4::staticEval(bool player, Node position) {
+  //Global case vars
   int playerStaticEval = player ? maxStaticEval : minStaticEval; // switch case variable used below
+  int pieceVal = (player) ? (1) : (-1);
+  
+  //Case 1 vars
+  int utility = 138;
+  int sum = 0;
+
+  //Case 2 vars
+  const int winningMoveScore = 1000;
+  const int blockingWinningMove = 900;
+  const int gettingThreeInRow = 850;
+  const int blockingThreeInRow = 800;
+  const int gettingTwoInRow = 750;
+  const int blockingTwoInRow = 700;
+  const int random = 600;
+  int moveValue = 0;
 
   // uses the proper evaluation function depending on what was defined for this player for this game
   switch(playerStaticEval) {
     case 1: /* AUTHOR: Brandon Burtchell */
-      int utility = 138;
-      int sum = 0;
-      int pieceVal = (player) ? (1) : (-1);
-
       for (int col = 0; col < COLUMNS; col++)
       {
         for (int row = 0; row < ROWS; row++)
@@ -279,10 +289,146 @@ int Connect4::staticEval(bool player, Node position) {
         }
       }
       return utility + sum;
-    //case 2: /* AUTHOR: Joe McAdams */
-    //case 3: /* AUTHOR: Jeff Wilson */
-  }
+
+    case 2: /* AUTHOR: Joe McAdams */
+
+      /*Analyzes the board for amount in a row the state being evaluated will give for player or block for opponent.
+        Returns the biggest value determined for the state (I.E if a move would block 3 in a row and also block 2 in a row, it's valued for blocking 3 in a row)*/
+      if(winningMove(position, player) == pieceVal) //If this move would result in a win, return best score
+      {
+        return winningMoveScore;
+      }
+
+      /*Check for opponent pieces in rows*/
+      //Check if move blocks x in a row of opponent vertically (below)
+      if(position.moveRowCoord >= ROWS - 3 && position.state[position.moveRowCoord - 1][position.moveColCoord] == -pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord] == -pieceVal && position.state[position.moveRowCoord - 3][position.moveColCoord] == -pieceVal) 
+      {
+        if(moveValue < blockingWinningMove) moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
+      }
+      else if(position.moveRowCoord >= ROWS - 4 && position.state[position.moveRowCoord - 1][position.moveColCoord] == -pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord] == -pieceVal)
+      {
+        if(moveValue < blockingThreeInRow) moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
+      else if(position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord] == -pieceVal)
+      {
+        if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+
+      //Check if move blocks x in a row of opponent horizontally - to the left
+      if(position.moveColCoord >= COLUMNS - 4 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 3] == -pieceVal) 
+      {
+        if(moveValue < blockingWinningMove) moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
+      }
+      else if(position.moveColCoord >= COLUMNS - 5 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == -pieceVal)
+      {
+        if(moveValue < blockingThreeInRow) moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
+      else if(position.moveColCoord >= COLUMNS - 6 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal)
+      {
+        if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+
+      //Check if move blocks x in a row of opponent horizontally - to the right
+      if(position.moveColCoord <= COLUMNS - 4 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 2] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 3] == -pieceVal) 
+      {
+        if(moveValue < blockingWinningMove) moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
+      }
+      else if(position.moveColCoord <= COLUMNS - 3 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 2] == -pieceVal)
+      {
+        if(moveValue < blockingThreeInRow) moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
+      else if(position.moveColCoord <= COLUMNS - 2 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal)
+      {
+        if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+
+      //Check if move blocks x in a row of a opponent diagonally (positive slope)
+      if(position.moveColCoord <= COLUMNS - 4 && position.moveRowCoord <= ROWS - 4 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == -pieceVal && position.state[position.moveRowCoord + 3][position.moveColCoord + 3] == -pieceVal) 
+      {
+        if(moveValue < blockingWinningMove) moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
+      }
+      else if(position.moveColCoord <= COLUMNS - 3 && position.moveRowCoord <= ROWS - 3 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == -pieceVal)
+      {
+        if(moveValue < blockingThreeInRow) moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
+      else if(position.moveColCoord <= COLUMNS - 2 && position.moveRowCoord <= ROWS - 2 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal)
+      {
+        if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+
+      //Check if move blocks x in a row of a opponent diagonally (Negative slope)
+      if(position.moveColCoord >= COLUMNS - 4 && position.moveRowCoord >= ROWS - 3 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord - 2] == -pieceVal && position.state[position.moveRowCoord - 3][position.moveColCoord - 3] == -pieceVal) 
+      {
+        if(moveValue < blockingWinningMove) moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
+      }
+      else if(position.moveColCoord >= COLUMNS - 5 && position.moveRowCoord >= ROWS - 4 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord - 2] == -pieceVal)
+      {
+        if(moveValue < blockingThreeInRow) moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
+      else if(position.moveColCoord >= COLUMNS - 6 && position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == -pieceVal)
+      {
+        if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+      
+      /*Check for player pieces in rows*/
+      //Check if move gives x in a row vertically (below)
+      if(position.moveRowCoord >= ROWS - 4 && position.state[position.moveRowCoord - 1][position.moveColCoord] == pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord] == pieceVal)
+      {
+        if(moveValue < gettingThreeInRow) moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
+      else if(position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord] == pieceVal)
+      {
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
+      }
+
+      //Check if move gives x in a row horizontally - to the left
+      if(position.moveColCoord >= COLUMNS - 5 && position.state[position.moveRowCoord][position.moveColCoord - 1] == pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == pieceVal)
+      {
+        if(moveValue < gettingThreeInRow) moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
+      else if(position.moveColCoord >= COLUMNS - 6 && position.state[position.moveRowCoord][position.moveColCoord - 1] == pieceVal)
+      {
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
+      }
+
+      //Check if move gives x in a row horizontally - to the right
+      if(position.moveColCoord <= COLUMNS - 3 && position.state[position.moveRowCoord][position.moveColCoord + 1] == pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 2] == pieceVal)
+      {
+        if(moveValue < gettingThreeInRow) moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
+      else if(position.moveColCoord <= COLUMNS - 2 && position.state[position.moveRowCoord][position.moveColCoord + 1] == pieceVal)
+      {
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingThreeInRow
+      }
+
+      //Check if move gives x in a row diagonally - positive slope
+      if(position.moveColCoord <= COLUMNS - 3 && position.moveRowCoord <= ROWS - 3 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == pieceVal)
+      {
+        if(moveValue < gettingThreeInRow) moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
+      else if(position.moveColCoord <= COLUMNS - 2 && position.moveRowCoord <= ROWS - 2 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == pieceVal)
+      {
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingThreeInRow
+      }
+
+      //Check if move gives x in a row diagonally - negative slope
+      if(position.moveColCoord >= COLUMNS - 5 && position.moveRowCoord >= ROWS - 4 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord - 2] == pieceVal)
+      {
+        if(moveValue < gettingThreeInRow) moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
+      else if(position.moveColCoord >= COLUMNS - 6 && position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == pieceVal)
+      {
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingThreeInRow
+      }
+      
+      //default - just return the lowest score - could change later to favor center of the board?
+      if(moveValue < random) moveValue = random;
+      
+      return moveValue;
+      //case 3: /* AUTHOR: Jeff Wilson */
   
+  }
+  return 0; //Something went wrong
 }
 
 /*
@@ -301,6 +447,8 @@ vector<Node> Connect4::moveGen(bool player, Node position)
       {
         Node newNode = position; // make a new node to contain the potential state. Potential state is the state of position + the move
         newNode.state[row][col] = (player) ? (1) : (-1); // add the player's piece that corresponds to this potential move
+        newNode.moveRowCoord = row;
+        newNode.moveColCoord = col;
         successors.push_back(newNode); // add this succ to the successors list
         this->nodeCounter++;
         break;

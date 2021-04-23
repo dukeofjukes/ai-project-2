@@ -12,9 +12,13 @@ using namespace std;
 struct Node
 {
   vector<vector<int>> state; // the game board that would represent int state
-  int value; // the static evaluation value of int tate
+  int value; // the static evaluation value of int state
   vector<Node> path; // the path of child nodes that follows int state
-
+  
+  //State tracking aid variables - needed for evaluation function 2
+  int moveRowCoord;
+  int moveColCoord;
+  
   Node(vector<vector<int>> state) // state initializer
   {
     this->state = state;
@@ -37,6 +41,7 @@ public:
   const bool MAX = true;
   const bool MIN = false;
   
+
   // public functions:
   Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh);
   void playGame();
