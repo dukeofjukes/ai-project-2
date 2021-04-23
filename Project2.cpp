@@ -172,7 +172,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
   if (deepEnough(position, depth, player))
   {
     //cout << "deepEnough returned true" << endl;
-    Node n(position.state);
+    Node n(position.state, position.moveRowCoord, position.moveColCoord);
     n.value = staticEval(player, n); // calculate the score of this move
     //cout << "  end node static eval = " << n.value << endl;
     return n;
@@ -182,7 +182,7 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 
   if (successors.empty())
   {
-    Node n(position.state);
+    Node n(position.state, position.moveRowCoord, position.moveColCoord);
     n.value = staticEval(player, n); // calculate the score of this move
     return n;
   }
@@ -267,7 +267,7 @@ int Connect4::staticEval(bool player, Node position) {
   const int gettingThreeInRow = 850;
   const int blockingThreeInRow = 800;
   const int gettingTwoInRow = 750;
-  const int blockingTwoInRow = 700;
+  const int blockingTwoInRow = 500;
   const int random = 600;
   int moveValue = 0;
 
@@ -313,7 +313,7 @@ int Connect4::staticEval(bool player, Node position) {
       {
         if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
       }
-
+      
       //Check if move blocks x in a row of opponent horizontally - to the left
       if(position.moveColCoord >= COLUMNS - 4 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 3] == -pieceVal) 
       {
@@ -408,7 +408,7 @@ int Connect4::staticEval(bool player, Node position) {
       }
       else if(position.moveColCoord <= COLUMNS - 2 && position.moveRowCoord <= ROWS - 2 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == pieceVal)
       {
-        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingThreeInRow
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
       }
 
       //Check if move gives x in a row diagonally - negative slope
@@ -418,7 +418,7 @@ int Connect4::staticEval(bool player, Node position) {
       }
       else if(position.moveColCoord >= COLUMNS - 6 && position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == pieceVal)
       {
-        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingThreeInRow
+        if(moveValue < gettingTwoInRow) moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
       }
       
       //default - just return the lowest score - could change later to favor center of the board?

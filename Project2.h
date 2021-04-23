@@ -19,7 +19,13 @@ struct Node
   int moveRowCoord;
   int moveColCoord;
   
-  Node(vector<vector<int>> state) // state initializer
+  Node(vector<vector<int>> state, int moveRowCoord, int moveColCoord) // state initializer
+  {
+    this->state = state;
+    this->moveColCoord = moveColCoord;
+    this->moveRowCoord = moveRowCoord;
+  }
+  Node(vector<vector<int>> state)
   {
     this->state = state;
   }
