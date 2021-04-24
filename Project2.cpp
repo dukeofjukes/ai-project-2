@@ -87,6 +87,9 @@ Connect4::Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticE
   this->nodeCounter = 0;
   this->gameDuration = 0;
 
+  //initialize random
+  srand(time(NULL));
+
   // define board size and initialize with 0's in every board location
   board.resize(ROWS, vector<int>(COLUMNS,0));
 
@@ -248,7 +251,8 @@ int Connect4::staticEval(bool player, Node position) {
   const int blockingThreeInRow = 800;
   const int gettingTwoInRow = 750;
   const int blockingTwoInRow = 500;
-  const int random = 600;
+  int random = rand() % 500 + 1; //Random value between 500 and 1 (to avoid picking leftmost node every time)
+  int inARowCount = 0;
   int moveValue = 0;
 
   // uses the proper evaluation function depending on what was defined for this player for this game
@@ -272,7 +276,7 @@ int Connect4::staticEval(bool player, Node position) {
       return utility + sum;
 
     case 2: /* AUTHOR: Joe McAdams */
-
+      
       /*Analyzes the board for amount in a row the state being evaluated will give for player or block for opponent.
         Returns the biggest value determined for the state (I.E if a move would block 3 in a row and also block 2 in a row, it's valued for blocking 3 in a row)*/
       if(winningPlayer == pieceVal) //If this move would result in a win, return best score
@@ -322,6 +326,7 @@ int Connect4::staticEval(bool player, Node position) {
       {
         if(moveValue < blockingTwoInRow) moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
       }
+      
 
       //Check if move blocks x in a row of a opponent diagonally (positive slope)
       if(position.moveColCoord <= COLUMNS - 4 && position.moveRowCoord <= ROWS - 4 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == -pieceVal && position.state[position.moveRowCoord + 3][position.moveColCoord + 3] == -pieceVal) 
@@ -404,7 +409,10 @@ int Connect4::staticEval(bool player, Node position) {
       
       //default - just return the lowest score - could change later to favor center of the board?
       if(moveValue < random) moveValue = random;
-      
+      printf("State being evaluated: \n"); 
+      drawBoard(position.state);
+      printf("Score chosen for the state: %d", moveValue);
+      printf("\n");
       return moveValue;
       //case 3: /* AUTHOR: Jeff Wilson */
   
