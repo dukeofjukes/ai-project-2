@@ -243,6 +243,7 @@ int Connect4::staticEval(bool player, Node position) {
   //Global case vars
   int playerStaticEval = player ? maxStaticEval : minStaticEval; // switch case variable used below
   int pieceVal = (player) ? (1) : (-1);
+  int winningPlayer = winningMove(position, player);
   
   //Case 1 vars
   int utility = 138;
@@ -258,7 +259,6 @@ int Connect4::staticEval(bool player, Node position) {
   const int random = 600;
   int moveValue = 0;
 
-      int winningPlayer = winningMove(position, player);
 
   // uses the proper evaluation function depending on what was defined for this player for this game
   switch(playerStaticEval) {
@@ -288,7 +288,7 @@ int Connect4::staticEval(bool player, Node position) {
 
       /*Analyzes the board for amount in a row the state being evaluated will give for player or block for opponent.
         Returns the biggest value determined for the state (I.E if a move would block 3 in a row and also block 2 in a row, it's valued for blocking 3 in a row)*/
-      if(winningMove(position, player) == pieceVal) //If this move would result in a win, return best score
+      if(winningPlayer == pieceVal) //If this move would result in a win, return best score
       {
         return winningMoveScore;
       }
