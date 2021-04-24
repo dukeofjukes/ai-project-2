@@ -171,10 +171,8 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
 {
   if (deepEnough(position, depth, player))
   {
-    //cout << "deepEnough returned true" << endl;
     Node n(position.state, position.moveRowCoord, position.moveColCoord);
     n.value = staticEval(player, n); // calculate the score of this move
-    //cout << "  end node static eval = " << n.value << endl;
     return n;
   }
 
@@ -187,44 +185,33 @@ Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, i
     return n;
   }
 
-  //cout << "Iterating through successors" << endl;
   int newValue;
   vector<vector<int>> bestMove = position.state;
   vector<Node> bestPath;
   for (Node succ : successors)
   {
-    //cout << "Inside iterator" << endl;
     Node result_succ = minimaxAB(succ, depth - 1, !player, -(passThresh), -(useThresh)); // result_succ will be the best child of succ
-    //cout << "result succ state: " << endl;
-    //drawBoard(result_succ.state);
-    //cout << "After recursive call, newValue to be set to " << -(result_succ.value) << endl;
     newValue = -(result_succ.value); // this node's newValue inherits its best child's best score
-    //cout << "Testing newValue > passThresh" << endl;
     if (newValue > passThresh) // we have found a better successor, we need to record this for pruning (next succs in loop) and to pass it up the tree if it is indeed the best.
     {
-      //cout << "newValue > passThresh; passThresh = newValue and bestPath set to result_succ.path" << endl;
+      bestMove = succ.state; // save this successor's state as the best move to make.
       passThresh = newValue; // record the new best value as the limit for our pruning.
-      //cout << "best value found" << passThresh << endl;
-      bestPath = result_succ.path; // best path (so far) is now the path from this current succ to its children (succ.path).
+      bestPath = result_succ.path; // best path is now the path from this current succ to its children
       if (bestPath.empty())
-      {
         bestPath.push_back(succ);
-      }
       else
-      {
         bestPath.insert(bestPath.begin(), succ); // add succ to the beginning of its child's path, since it will need to be returned to its parent as the best path
-        bestMove = succ.state; // save this successor's state as the best move to make. the initial call will then return a Node with the best first move as the state
-      }
     }
-    //cout << "Testing passThresh > useThresh" << endl;
+
     if (passThresh >= useThresh) // is passThresh (the best value) is not better than useThresh, we should stop examining the parent's branch
-    {
-      //cout << "passThresh > useThresh was true, abandoning this branch and returning..." << endl;
-      break; // we'll get out of this loop and return our best results
-    } // else, try the next successor
+      break;
   }
 
-  Node n(bestMove); // FIXME: for future consideration: this might not be viable for minimax, but I wasn't sure how else to store the state of the node that held the best value and path
+  // if a best node was never set/found, default to the first value in successors
+  if (bestMove == position.state)
+    bestMove = successors[0].state;
+
+  Node n(bestMove);
   n.value = passThresh; // passThresh will end up holding the best score so far
   n.path = bestPath; // always pass the best path to the parent
   return n;
@@ -271,9 +258,16 @@ int Connect4::staticEval(bool player, Node position) {
   const int random = 600;
   int moveValue = 0;
 
+      int winningPlayer = winningMove(position, player);
+
   // uses the proper evaluation function depending on what was defined for this player for this game
   switch(playerStaticEval) {
     case 1: /* AUTHOR: Brandon Burtchell */
+      if (winningPlayer == pieceVal)
+        return utility * 2;
+      else if (winningPlayer == -pieceVal)
+        return 0;
+
       for (int col = 0; col < COLUMNS; col++)
       {
         for (int row = 0; row < ROWS; row++)
