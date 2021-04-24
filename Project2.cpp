@@ -78,7 +78,7 @@ int Connect4::draws = 0;
 int Connect4::gameCounter = 0;
 
 /*
-  Connect4 class constructor (with parameters)
+  Connect4 class constructor
 */
 Connect4::Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh)
 {
@@ -163,10 +163,11 @@ void Connect4::playGame()
   board.clear();
 }
 
-// FIXME: clean up these comments when submitting:
-// useThresh and passThresh alternate in the recursive call to reflect the relevant values for each player's best move evaluation
-// player is true if it's player 1's (MAX) turn, false if player 2's (MIN) turn
-// position = a node that holds a state of the board and an associated eval value; in connect4, a players "position" is the state of the entire game (the board)
+/*
+  A recursive function that determines the "best" move to make from the standpoint of its initial
+  call. Utilizes multiple helper variables.
+  returns: the Node containing the best next move as determined by staticEval().
+*/
 Node Connect4::minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh)
 {
   if (deepEnough(position, depth, player))
@@ -225,15 +226,6 @@ bool Connect4::deepEnough(Node position, int depth, bool player)
   return false;
 }
 
-
-/* // FIXME: old random evaluation function:
-int Connect4::staticEval(bool player, Node position)
-{ //Defined to return a completely random evalutation number between 1 and 100
-  int randEvalNumber = rand() % 100 + 1; //Number between 1 and 100
-  return randEvalNumber;
-}
-*/
-
 /*
   the static evaluation function, or the "heuristic"
   contains three seperate evaluation functions developed by each group member, nested in a case-switch
@@ -259,7 +251,6 @@ int Connect4::staticEval(bool player, Node position) {
   const int random = 600;
   int moveValue = 0;
 
-
   // uses the proper evaluation function depending on what was defined for this player for this game
   switch(playerStaticEval) {
     case 1: /* AUTHOR: Brandon Burtchell */
@@ -273,13 +264,9 @@ int Connect4::staticEval(bool player, Node position) {
         for (int row = 0; row < ROWS; row++)
         {
           if (position.state[row][col] == pieceVal)
-          {
             sum += evaluationTable[row][col];
-          }
           else if (position.state[row][col] == -(pieceVal))
-          {
             sum -= evaluationTable[row][col];
-          }
         }
       }
       return utility + sum;

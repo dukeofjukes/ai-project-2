@@ -46,7 +46,6 @@ public:
   // player boolean names:
   const bool MAX = true;
   const bool MIN = false;
-  
 
   // public functions:
   Connect4(int maxDepth, int minDepth, int maxStaticEval, int minStaticEval, int maxThresh, int minThresh);
