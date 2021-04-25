@@ -262,11 +262,10 @@ int Connect4::staticEval(bool player, Node position)
 
   // case 3 vars:
   const int winningScore = 400;
-  const int playRowStrat = 300;
-  const int blockOpponentVertically_DEFENSE = 200;
-  const int playRandomRow = 100;
+  const int blockOpponentVertically_DEFENSE = 350;
+  const int playEvenColumn = 300;
+  const int playOddColumn = 250;
   int currMoveVal = 0;
-  int tempRowCounter = 0;
 
   // uses the proper evaluation function depending on what was defined for this player for this game
   switch(currentPlayerStaticEval)
@@ -412,29 +411,18 @@ int Connect4::staticEval(bool player, Node position)
       if (winningPlayer == pieceVal) // if this move would result in a win, return best score
         return winningScore;
 
-      for (int row = 0; row < ROWS; row++)
+      if(position.state[position.moveRowCoord][position.moveColCoord - 1] == -(pieceVal) && (position.moveColCoord - 1) >= 0) 
       {
-        for (int col = 0; col < COLUMNS; col++)
-        {
-          if (position.state[row][col] == pieceVal)
-            continue;
-          else if (position.state[row][col] == -(pieceVal))
-          {
-            tempRowCounter = row;   // Used to check up a column to block vertically.
-            while(tempRowCounter < ROWS && position.state[tempRowCounter][col] == pieceVal)
-            {
-              tempRowCounter++;
-            }
-            if(tempRowCounter < ROWS)
-            {
-              // Place piece down here as defense. Ending column streak of enemy.
-              currMoveVal = blockOpponentVertically_DEFENSE;
-            }
-          }
-          else{
-            currMoveVal = playRandomRow;
-          }
-        }
+        // The piece under the current node is an enemy piece so play on top of it.
+        currMoveVal = blockOpponentVertically_DEFENSE;
+      }
+      else if(position.moveColCoord % 2 == 0){
+        // No chance to block, play an even column
+        currMoveVal = playEvenColumn;
+      }
+      else if(position.moveColCoord % 2 == !0){
+        // No chance to block, play an odd column
+        currMoveVal = playOddColumn;
       }
       return currMoveVal;
   }
