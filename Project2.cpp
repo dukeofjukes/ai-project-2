@@ -11,54 +11,77 @@
 
 int main()
 {
-  char quitInput;
-  bool quit = false;
-  int maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh;
-
   cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
-  while (!quit) {
-    cout << endl << "Set game parameters:" << endl;
-    cout << "  Player MAX's cutoff depth (choose 2, 4, or 8): ";
-    cin >> maxDepth;
-    cout << "  Player MIN's cutoff depth (choose 2, 4, or 8): ";
-    cin >> minDepth;
-    cout << "  Player MAX's evaluation function (choose 1, 2, or 3): ";
-    cin >> maxStaticEval;
-    cout << "  Player MIN's evaluation function (choose 1, 2, or 3): ";
-    cin >> minStaticEval;
 
-    // set threshold values according to the maximum possible score returned by the eval function:
-    if (maxStaticEval == 1)
-      maxThresh = 276;
-    else if (maxStaticEval == 2)
-      maxThresh = 1000;
-    else
-      maxThresh = 400;
-    
-    if (minStaticEval == 1)
-      minThresh = 276;
-    else if (minStaticEval == 2)
-      minThresh = 1000;
-    else
-      minThresh = 400;
+  // game 1:
+  Connect4 game1(2, 2, 1, 2, 276, 1000);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #1) with depth 2 vs. MIN (eval #2) with depth 2)" << endl;
+  game1.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
 
-    Connect4 game(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
+  // game 2:
+  Connect4 game2(2, 4, 1, 3, 276, 400);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #1) with depth 2 vs. MIN (eval #3) with depth 4)" << endl;
+  game2.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
 
-    cout << endl << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-    game.playGame();
+  // game 3:
+  Connect4 game3(2, 8, 2, 3, 1000, 400);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #2) with depth 2 vs. MIN (eval #3) with depth 8)" << endl;
+  game3.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
 
-    // print game statistics:
-    cout << endl;
-    cout << "GAME " << Connect4::gameCounter << " STATISTICS:" << endl;
-    cout << "  Number of turns: " << game.turnCounter << endl;
-    cout << "  Nodes created:   " << game.nodeCounter << endl;
-    cout << "  Game duration:   " << game.gameDuration << " msec" << endl;
+  // game 4:
+  Connect4 game4(4, 2, 1, 2, 276, 1000);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #1) with depth 4 vs. MIN (eval #2) with depth 2)" << endl;
+  game4.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
 
-    cout << "Play another game (choose Y/N)? ";
-    cin >> quitInput;
-    if (quitInput == 'n' || quitInput == 'N')
-      break;
-  }
+  // game 5:
+  Connect4 game5(4, 4, 1, 3, 276, 400);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #1) with depth 4 vs. MIN (eval #3) with depth 4)" << endl;
+  game5.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
+
+  // game 6:
+  Connect4 game6(4, 8, 2, 3, 1000, 400);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #2) with depth 4 vs. MIN (eval #3) with depth 8)" << endl;
+  game6.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
+
+  // game 7:
+  Connect4 game7(8, 2, 1, 2, 276, 1000);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #1) with depth 8 vs. MIN (eval #2) with depth 2)" << endl;
+  game7.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
+
+  // game 8:
+  Connect4 game8(8, 4, 1, 3, 276, 400);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #1) with depth 8 vs. MIN (eval #3) with depth 4)" << endl;
+  game8.playGame();
+  cout << "Press enter to continue.";
+  cin.ignore();
+
+  // game 9:
+  Connect4 game9(8, 8, 2, 3, 1000, 400);
+  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+  cout << "(MAX (eval #2) with depth 8 vs. MIN (eval #3) with depth 8)" << endl;
+  game9.playGame();
 
   // print overall statistics:
   cout << endl;
@@ -163,6 +186,13 @@ void Connect4::playGame()
     cout << "GAME OVER: DRAW." << endl;
     this->draws++;
   }
+
+  // print game statistics:
+  cout << endl;
+  cout << "GAME " << Connect4::gameCounter << " STATISTICS:" << endl;
+  cout << "  Number of turns: " << turnCounter << endl;
+  cout << "  Nodes created:   " << nodeCounter << endl;
+  cout << "  Game duration:   " << gameDuration << " msec" << endl;
 
   // free up memory:
   board.clear();
