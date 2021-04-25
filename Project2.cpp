@@ -11,16 +11,18 @@
 
 int main()
 {
-  cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
   char quitInput;
   bool quit = false;
   int driverControl;
   int maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh;
+
+  cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
   cout << "If you'd like to manually enter parameters for each game enter 1, otherwise enter 0: ";
   cin >> driverControl;
-  if(driverControl == 1)
+  if (driverControl == 1)
   {
-    while (!quit) {
+    while (!quit)
+    {
       cout << endl << "Set game parameters:" << endl;
       cout << "  Player MAX's cutoff depth (choose 2, 4, or 8): ";
       cin >> maxDepth;
@@ -31,7 +33,7 @@ int main()
       cout << "  Player MIN's evaluation function (choose 1, 2, or 3): ";
       cin >> minStaticEval;
 
-      // FIXME: set threshold values once eval functions are done
+      // set threshold values once eval functions are done
       if (maxStaticEval == 1)
         maxThresh = 276;
       else if (maxStaticEval == 2)
@@ -51,20 +53,14 @@ int main()
       cout << endl << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
       game.playGame();
 
-      // print game statistics:
-      cout << endl;
-      cout << "GAME " << Connect4::gameCounter << " STATISTICS:" << endl;
-      cout << "  Number of turns: " << game.turnCounter << endl;
-      cout << "  Nodes created:   " << game.nodeCounter << endl;
-      cout << "  Game duration:   " << game.gameDuration << " msec" << endl;
-
       cout << "Play another game (choose Y/N)? ";
       cin >> quitInput;
       if (quitInput == 'n' || quitInput == 'N')
         break;
     }
   }
-  else{
+  else
+  {
     // game 1:
     Connect4 game1(2, 2, 1, 2, 276, 1000);
     cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
@@ -135,6 +131,7 @@ int main()
     cout << "(MAX (eval #2) with depth 8 vs. MIN (eval #3) with depth 8)" << endl;
     game9.playGame();
   }
+
   // print overall statistics:
   cout << endl;
   cout << "OVERALL STATISTICS: " << endl;
@@ -373,7 +370,7 @@ int Connect4::staticEval(bool player, Node position)
       winningPlayer = -(winningPlayer);
 
       if (winningPlayer == pieceVal) //If this move would result in a win, return best score
-        return winningMoveScore;
+        return -(winningMoveScore);
 
       /*Check for opponent pieces in rows*/
       //Check if move blocks x in a row of opponent vertically (below)
@@ -540,14 +537,14 @@ int Connect4::staticEval(bool player, Node position)
       if (moveValue < random)
         moveValue = random;
 
-      return -(moveValue); // FIXME: negating makes it so the higher value should be picked in minimax idk
+      return -(moveValue);
       
     case 3: /* AUTHOR: Jeff Wilson */
       pieceVal = -(pieceVal);
       winningPlayer = -(winningPlayer);
 
       if (winningPlayer == pieceVal) // if this move would result in a win, return best score
-        return winningScore;
+        return -(winningScore);
 
       if ((position.moveRowCoord - 1) >= 0 && position.state[position.moveRowCoord - 1][position.moveColCoord] == -(pieceVal)) 
       {
