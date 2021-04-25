@@ -12,77 +12,129 @@
 int main()
 {
   cout << "--- Welcome to CONNECT FOUR: MINIMAX Edition ---" << endl;
+  char quitInput;
+  bool quit = false;
+  int driverControl;
+  int maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh;
+  cout << "If you'd like to manually enter parameters for each game enter 1, otherwise enter 0: ";
+  cin >> driverControl;
+  if(driverControl == 1)
+  {
+    while (!quit) {
+      cout << endl << "Set game parameters:" << endl;
+      cout << "  Player MAX's cutoff depth (choose 2, 4, or 8): ";
+      cin >> maxDepth;
+      cout << "  Player MIN's cutoff depth (choose 2, 4, or 8): ";
+      cin >> minDepth;
+      cout << "  Player MAX's evaluation function (choose 1, 2, or 3): ";
+      cin >> maxStaticEval;
+      cout << "  Player MIN's evaluation function (choose 1, 2, or 3): ";
+      cin >> minStaticEval;
 
-  // game 1:
-  Connect4 game1(2, 2, 1, 2, 276, 1000);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #1) with depth 2 vs. MIN (eval #2) with depth 2)" << endl;
-  game1.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+      // FIXME: set threshold values once eval functions are done
+      if (maxStaticEval == 1)
+        maxThresh = 276;
+      else if (maxStaticEval == 2)
+        maxThresh = 1000;
+      else
+        maxThresh = 400;
+      
+      if (minStaticEval == 1)
+        minThresh = 276;
+      else if (minStaticEval == 2)
+        minThresh = 1000;
+      else
+        minThresh = 400;
 
-  // game 2:
-  Connect4 game2(2, 4, 1, 3, 276, 400);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #1) with depth 2 vs. MIN (eval #3) with depth 4)" << endl;
-  game2.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+      Connect4 game(maxDepth, minDepth, maxStaticEval, minStaticEval, maxThresh, minThresh);
 
-  // game 3:
-  Connect4 game3(2, 8, 2, 3, 1000, 400);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #2) with depth 2 vs. MIN (eval #3) with depth 8)" << endl;
-  game3.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+      cout << endl << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+      game.playGame();
 
-  // game 4:
-  Connect4 game4(4, 2, 1, 2, 276, 1000);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #1) with depth 4 vs. MIN (eval #2) with depth 2)" << endl;
-  game4.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+      // print game statistics:
+      cout << endl;
+      cout << "GAME " << Connect4::gameCounter << " STATISTICS:" << endl;
+      cout << "  Number of turns: " << game.turnCounter << endl;
+      cout << "  Nodes created:   " << game.nodeCounter << endl;
+      cout << "  Game duration:   " << game.gameDuration << " msec" << endl;
 
-  // game 5:
-  Connect4 game5(4, 4, 1, 3, 276, 400);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #1) with depth 4 vs. MIN (eval #3) with depth 4)" << endl;
-  game5.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+      cout << "Play another game (choose Y/N)? ";
+      cin >> quitInput;
+      if (quitInput == 'n' || quitInput == 'N')
+        break;
+    }
+  }
+  else{
+    // game 1:
+    Connect4 game1(2, 2, 1, 2, 276, 1000);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #1) with depth 2 vs. MIN (eval #2) with depth 2)" << endl;
+    game1.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
 
-  // game 6:
-  Connect4 game6(4, 8, 2, 3, 1000, 400);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #2) with depth 4 vs. MIN (eval #3) with depth 8)" << endl;
-  game6.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+    // game 2:
+    Connect4 game2(2, 4, 1, 3, 276, 400);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #1) with depth 2 vs. MIN (eval #3) with depth 4)" << endl;
+    game2.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
 
-  // game 7:
-  Connect4 game7(8, 2, 1, 2, 276, 1000);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #1) with depth 8 vs. MIN (eval #2) with depth 2)" << endl;
-  game7.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+    // game 3:
+    Connect4 game3(2, 8, 2, 3, 1000, 400);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #2) with depth 2 vs. MIN (eval #3) with depth 8)" << endl;
+    game3.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
 
-  // game 8:
-  Connect4 game8(8, 4, 1, 3, 276, 400);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #1) with depth 8 vs. MIN (eval #3) with depth 4)" << endl;
-  game8.playGame();
-  cout << "Press enter to continue.";
-  cin.ignore();
+    // game 4:
+    Connect4 game4(4, 2, 1, 2, 276, 1000);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #1) with depth 4 vs. MIN (eval #2) with depth 2)" << endl;
+    game4.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
 
-  // game 9:
-  Connect4 game9(8, 8, 2, 3, 1000, 400);
-  cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
-  cout << "(MAX (eval #2) with depth 8 vs. MIN (eval #3) with depth 8)" << endl;
-  game9.playGame();
+    // game 5:
+    Connect4 game5(4, 4, 1, 3, 276, 400);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #1) with depth 4 vs. MIN (eval #3) with depth 4)" << endl;
+    game5.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
 
+    // game 6:
+    Connect4 game6(4, 8, 2, 3, 1000, 400);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #2) with depth 4 vs. MIN (eval #3) with depth 8)" << endl;
+    game6.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
+
+    // game 7:
+    Connect4 game7(8, 2, 1, 2, 276, 1000);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #1) with depth 8 vs. MIN (eval #2) with depth 2)" << endl;
+    game7.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
+
+    // game 8:
+    Connect4 game8(8, 4, 1, 3, 276, 400);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #1) with depth 8 vs. MIN (eval #3) with depth 4)" << endl;
+    game8.playGame();
+    cout << "Press enter to continue.";
+    cin.ignore();
+
+    // game 9:
+    Connect4 game9(8, 8, 2, 3, 1000, 400);
+    cout << "GAME " << Connect4::gameCounter + 1 << ":" << endl;
+    cout << "(MAX (eval #2) with depth 8 vs. MIN (eval #3) with depth 8)" << endl;
+    game9.playGame();
+  }
   // print overall statistics:
   cout << endl;
   cout << "OVERALL STATISTICS: " << endl;
@@ -279,7 +331,14 @@ int Connect4::staticEval(bool player, Node position)
 
   // case 2 vars:
   int random = rand() % 500 + 1; //Random value between 500 and 1 (to avoid picking leftmost node every time)
-  int inARowCount = 0;
+  int inARowCountLeftO = 0;
+  int inARowCountRightO = 0;
+  int inARowCountPosO = 0;
+  int inARowCountNegO = 0;
+  int inARowCountLeftP = 0;
+  int inARowCountRightP = 0;
+  int inARowCountPosP = 0;
+  int inARowCountNegP = 0;
   int moveValue = 0;
 
   // case 3 vars:
@@ -333,44 +392,76 @@ int Connect4::staticEval(bool player, Node position)
         if (moveValue < blockingWinningMove) 
           moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
       else if (position.moveColCoord >= COLUMNS - 5 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == -pieceVal)
+      {
+        inARowCountLeftO = 2;
         if (moveValue < blockingThreeInRow) 
           moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
       else if (position.moveColCoord >= COLUMNS - 6 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal)
+      {
+        if (inARowCountLeftO == 0) inARowCountLeftO = 1;
         if (moveValue < blockingTwoInRow) 
           moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
 
       //Check if move blocks x in a row of opponent horizontally - to the right
       if (position.moveColCoord <= COLUMNS - 4 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 2] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 3] == -pieceVal) 
         if (moveValue < blockingWinningMove) 
           moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
       else if (position.moveColCoord <= COLUMNS - 3 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 2] == -pieceVal)
+      {
+        inARowCountRightO = 2;
         if (moveValue < blockingThreeInRow) 
           moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
       else if (position.moveColCoord <= COLUMNS - 2 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal)
+      {
+        if (inARowCountRightO == 0) inARowCountRightO = 1;
         if (moveValue < blockingTwoInRow)
           moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+
+      if (inARowCountRightO + inARowCountLeftO >= 3 && moveValue < blockingWinningMove) moveValue = blockingWinningMove;
+      else if (inARowCountRightO + inARowCountLeftO == 2 && moveValue < blockingThreeInRow) moveValue = blockingThreeInRow;
+      //else it's already blockingTwoInRow or not blocking anything
 
       //Check if move blocks x in a row of a opponent diagonally (positive slope)
       if (position.moveColCoord <= COLUMNS - 4 && position.moveRowCoord <= ROWS - 4 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == -pieceVal && position.state[position.moveRowCoord + 3][position.moveColCoord + 3] == -pieceVal) 
         if (moveValue < blockingWinningMove)
           moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
       else if (position.moveColCoord <= COLUMNS - 3 && position.moveRowCoord <= ROWS - 3 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == -pieceVal)
+      {
+        inARowCountPosO = 2;
         if (moveValue < blockingThreeInRow)
           moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
       else if (position.moveColCoord <= COLUMNS - 2 && position.moveRowCoord <= ROWS - 2 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal)
+      {
+        if (inARowCountPosO == 0) inARowCountPosO = 1;
         if (moveValue < blockingTwoInRow)
           moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
 
       //Check if move blocks x in a row of a opponent diagonally (Negative slope)
       if (position.moveColCoord >= COLUMNS - 4 && position.moveRowCoord >= ROWS - 3 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord - 2] == -pieceVal && position.state[position.moveRowCoord - 3][position.moveColCoord - 3] == -pieceVal) 
         if (moveValue < blockingWinningMove)
           moveValue = blockingWinningMove; //State blocks opponent winning move, moveValue blockingWinningMove
       else if (position.moveColCoord >= COLUMNS - 5 && position.moveRowCoord >= ROWS - 4 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord - 2] == -pieceVal)
+      {
+        inARowCountNegO = 2;
         if (moveValue < blockingThreeInRow)
           moveValue = blockingThreeInRow; //State blocks the opponents 3 in a row, moveValue = blockingThreeInRow
+      }
       else if (position.moveColCoord >= COLUMNS - 6 && position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == -pieceVal)
+      {
+        if(inARowCountNegO == 0) inARowCountNegO = 1;
         if (moveValue < blockingTwoInRow)
           moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
+      }
+      
+      if (inARowCountNegO + inARowCountPosO >= 3 && moveValue < blockingWinningMove) moveValue = blockingWinningMove;
+      else if (inARowCountNegO + inARowCountPosO == 2 && moveValue < blockingThreeInRow) moveValue = blockingThreeInRow;
+      //else it's already blockingTwoInRow or not blocking anything
       
       /*Check for player pieces in rows*/
       //Check if move gives x in a row vertically (below)
@@ -383,37 +474,69 @@ int Connect4::staticEval(bool player, Node position)
 
       //Check if move gives x in a row horizontally - to the left
       if (position.moveColCoord >= COLUMNS - 5 && position.state[position.moveRowCoord][position.moveColCoord - 1] == pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == pieceVal)
+      {
+        inARowCountLeftP = 2;
         if (moveValue < gettingThreeInRow)
           moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
       else if (position.moveColCoord >= COLUMNS - 6 && position.state[position.moveRowCoord][position.moveColCoord - 1] == pieceVal)
+      {
+        if(inARowCountLeftP == 0) inARowCountLeftP = 1;
         if (moveValue < gettingTwoInRow)
           moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
+      }
 
       //Check if move gives x in a row horizontally - to the right
       if (position.moveColCoord <= COLUMNS - 3 && position.state[position.moveRowCoord][position.moveColCoord + 1] == pieceVal && position.state[position.moveRowCoord][position.moveColCoord + 2] == pieceVal)
+      {
+        inARowCountRightP = 2;
         if (moveValue < gettingThreeInRow)
           moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
       else if (position.moveColCoord <= COLUMNS - 2 && position.state[position.moveRowCoord][position.moveColCoord + 1] == pieceVal)
+      {
+        if(inARowCountRightP == 0) inARowCountRightP = 1;
         if (moveValue < gettingTwoInRow)
           moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingThreeInRow
+      }
+
+      if (inARowCountRightP + inARowCountLeftP >= 3 && moveValue < winningMoveScore) moveValue = winningMoveScore;
+      else if (inARowCountRightP + inARowCountLeftP == 2 && moveValue < gettingThreeInRow) moveValue = gettingThreeInRow;
+      //else it's already gettingTwoInRow or none in row
 
       //Check if move gives x in a row diagonally - positive slope
       if (position.moveColCoord <= COLUMNS - 3 && position.moveRowCoord <= ROWS - 3 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == pieceVal)
+      {
+        inARowCountPosP = 2;
         if (moveValue < gettingThreeInRow)
           moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
       else if (position.moveColCoord <= COLUMNS - 2 && position.moveRowCoord <= ROWS - 2 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == pieceVal)
+      {
+        if (inARowCountPosP == 0) inARowCountPosP = 1;
         if (moveValue < gettingTwoInRow)
           moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
+      }
 
       //Check if move gives x in a row diagonally - negative slope
       if (position.moveColCoord >= COLUMNS - 5 && position.moveRowCoord >= ROWS - 4 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == pieceVal && position.state[position.moveRowCoord - 2][position.moveColCoord - 2] == pieceVal)
+      { 
+        inARowCountNegP = 2;
         if (moveValue < gettingThreeInRow)
           moveValue = gettingThreeInRow; //State gives player 3 in a row, moveValue = gettingThreeInRow
+      }
       else if (position.moveColCoord >= COLUMNS - 6 && position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord - 1] == pieceVal)
+      {
+        if (inARowCountNegP == 0) inARowCountNegP = 1;
         if (moveValue < gettingTwoInRow)
           moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
+      }
       
-      //default - just return the lowest score - FIXME: could change later to favor center of the board?
+      if (inARowCountPosP + inARowCountNegP >= 3 && moveValue < winningMoveScore) moveValue = winningMoveScore;
+      else if (inARowCountPosP + inARowCountNegP == 2 && moveValue < gettingThreeInRow) moveValue = gettingThreeInRow;
+      //else it's already gettingTwoInRow or none in row
+      
+      //default - just return the lowest score
       if (moveValue < random)
         moveValue = random;
 
