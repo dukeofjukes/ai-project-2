@@ -1,7 +1,6 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <tuple>
 #include <chrono>
 
 using namespace std;
@@ -15,7 +14,7 @@ struct Node
   int value; // the static evaluation value of int state
   vector<Node> path; // the path of child nodes that follows int state
   
-  //State tracking aid variables - needed for evaluation function 2
+  // state tracking aid variables - needed for evaluation function 2
   int moveRowCoord;
   int moveColCoord;
   
@@ -60,6 +59,7 @@ private:
   int minDepth;
   int maxStaticEval;
   int minStaticEval;
+  int currentPlayerStaticEval;
   int maxThresh;
   int minThresh;
 
