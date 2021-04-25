@@ -255,6 +255,15 @@ int Connect4::staticEval(bool player, Node position) {
   int inARowCount = 0;
   int moveValue = 0;
 
+  //Case 3 Vars
+  const int winningScore = 400;
+  const int playRowStrat = 300;
+  const int blockOpponentVertically_DEFENSE = 200;
+  const int playRandomRow = 100;
+  int currMoveVal = 0;
+  int tempRowCounter = 0;
+
+
   // uses the proper evaluation function depending on what was defined for this player for this game
   switch(playerStaticEval) {
     case 1: /* AUTHOR: Brandon Burtchell */
@@ -414,7 +423,41 @@ int Connect4::staticEval(bool player, Node position) {
       printf("Score chosen for the state: %d", moveValue);
       printf("\n");
       return moveValue;
-      //case 3: /* AUTHOR: Jeff Wilson */
+      
+      case 3: /* AUTHOR: Jeff Wilson */
+      
+      if(winningPlayer == pieceVal) //If this move would result in a win, return best score
+      {
+        return winningScore;
+      }
+
+      for (int row = 0; row < ROWS; row++)
+      {
+        for (int col = 0; col < COLUMNS; col++)
+        {
+          if (position.state[row][col] == pieceVal)
+            continue;
+          else if (position.state[row][col] == -(pieceVal))
+            tempRowCounter = row;   // Used to check up a column to block vertically.
+            while(tempRowCounter < ROWS && position.state[tempRowCounter][col] == pieceVal)
+            {
+              tempRowCounter++;
+            }
+            if(tempRowCounter < ROWS){
+              // Place piece down here as defense. Ending column streak of enemy.
+              currMoveVal = blockOpponentVertically_DEFENSE;
+            }
+          else{
+            currMoveVal = playRandomRow;
+          }
+        }
+      }
+
+      return currMoveVal;
+
+      //TODO: Check each item in row, if friendly space encounterd skip to next element. 
+      // If empty space found, place piece and go to next turn.
+      // If enemy space found, check vertically and continue until empty space is found and place piece down then go to next turn.
   
   }
   return 0; //Something went wrong
