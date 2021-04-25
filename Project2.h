@@ -63,13 +63,28 @@ private:
   int maxThresh;
   int minThresh;
 
-  // evaluation table for staticEval 1:
-  int evaluationTable[ROWS][COLUMNS] = {{3, 4, 5, 7, 5, 4, 3},
-                                        {4, 6, 8, 10, 8, 6, 4},
-                                        {5, 8, 11, 13, 11, 8, 5}, 
-                                        {5, 8, 11, 13, 11, 8, 5},
-                                        {4, 6, 8, 10, 8, 6, 4},
-                                        {3, 4, 5, 7, 5, 4, 3}};
+  // static eval 1 score constants:
+  const int utility = 138;
+  const int evaluationTable[ROWS][COLUMNS] = {{3, 4, 5, 7, 5, 4, 3},
+                                              {4, 6, 8, 10, 8, 6, 4},
+                                              {5, 8, 11, 13, 11, 8, 5}, 
+                                              {5, 8, 11, 13, 11, 8, 5},
+                                              {4, 6, 8, 10, 8, 6, 4},
+                                              {3, 4, 5, 7, 5, 4, 3}};
+
+  // static eval 2 score constants:
+  const int winningMoveScore = 1000;
+  const int blockingWinningMove = 900;
+  const int gettingThreeInRow = 850;
+  const int blockingThreeInRow = 800;
+  const int gettingTwoInRow = 750;
+  const int blockingTwoInRow = 500;
+
+  // static eval 3 score constants:
+  const int winningScore = 400;
+  const int blockOpponentVertically_DEFENSE = 350;
+  const int playEvenColumn = 300;
+  const int playOddColumn = 250;
 
   // private functions:
   Node minimaxAB(Node position, int depth, bool player, int useThresh, int passThresh);

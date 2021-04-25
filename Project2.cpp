@@ -241,30 +241,18 @@ bool Connect4::deepEnough(Node position, int depth, bool player)
 int Connect4::staticEval(bool player, Node position)
 {
   // global case vars:
-  //int playerStaticEval = player ? maxStaticEval : minStaticEval; // switch case variable used below
   int pieceVal = (player) ? (1) : (-1);
   int winningPlayer = winningMove(position, player);
   
   // case 1 vars:
-  int utility = 138;
   int sum = 0;
 
   // case 2 vars:
-  const int winningMoveScore = 1000;
-  const int blockingWinningMove = 900;
-  const int gettingThreeInRow = 850;
-  const int blockingThreeInRow = 800;
-  const int gettingTwoInRow = 750;
-  const int blockingTwoInRow = 500;
   int random = rand() % 500 + 1; //Random value between 500 and 1 (to avoid picking leftmost node every time)
   int inARowCount = 0;
   int moveValue = 0;
 
   // case 3 vars:
-  const int winningScore = 400;
-  const int blockOpponentVertically_DEFENSE = 350;
-  const int playEvenColumn = 300;
-  const int playOddColumn = 250;
   int currMoveVal = 0;
 
   // uses the proper evaluation function depending on what was defined for this player for this game
@@ -286,15 +274,15 @@ int Connect4::staticEval(bool player, Node position)
             sum -= evaluationTable[row][col];
         }
       }
-      // FIXME DEBUG: cout << "evaluated sum: " << sum << endl;
+
       return utility + sum;
 
     case 2: /* AUTHOR: Joe McAdams */
-      // FIXME: attempt to fix the weirdness: kinda works but minimax is still choosing the moves with lowest value (maybe switch pass and use thresh in initial call?)
-      pieceVal = -(pieceVal); // FIXME: negating makes the evals correct
-      winningPlayer = -(winningPlayer);
       /*Analyzes the board for amount in a row the state being evaluated will give for player or block for opponent.
         Returns the biggest value determined for the state (I.E if a move would block 3 in a row and also block 2 in a row, it's valued for blocking 3 in a row)*/
+      pieceVal = -(pieceVal);
+      winningPlayer = -(winningPlayer);
+
       if (winningPlayer == pieceVal) //If this move would result in a win, return best score
         return winningMoveScore;
 
@@ -309,7 +297,6 @@ int Connect4::staticEval(bool player, Node position)
       else if (position.moveRowCoord >= ROWS - 5 && position.state[position.moveRowCoord - 1][position.moveColCoord] == -pieceVal)
         if (moveValue < blockingTwoInRow)
           moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
-    
 
       //Check if move blocks x in a row of opponent horizontally - to the left
       if (position.moveColCoord >= COLUMNS - 4 && position.state[position.moveRowCoord][position.moveColCoord - 1] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 2] == -pieceVal && position.state[position.moveRowCoord][position.moveColCoord - 3] == -pieceVal) 
@@ -332,7 +319,6 @@ int Connect4::staticEval(bool player, Node position)
       else if (position.moveColCoord <= COLUMNS - 2 && position.state[position.moveRowCoord][position.moveColCoord + 1] == -pieceVal)
         if (moveValue < blockingTwoInRow)
           moveValue = blockingTwoInRow; //State blocks opponent 2 in a row, moveValue = blockingThreeInRow
-      
 
       //Check if move blocks x in a row of a opponent diagonally (positive slope)
       if (position.moveColCoord <= COLUMNS - 4 && position.moveRowCoord <= ROWS - 4 && position.state[position.moveRowCoord + 1][position.moveColCoord + 1] == -pieceVal && position.state[position.moveRowCoord + 2][position.moveColCoord + 2] == -pieceVal && position.state[position.moveRowCoord + 3][position.moveColCoord + 3] == -pieceVal) 
@@ -397,34 +383,36 @@ int Connect4::staticEval(bool player, Node position)
         if (moveValue < gettingTwoInRow)
           moveValue = gettingTwoInRow; //State gives player 2 in a row, moveValue = gettingTwoInRow
       
-      //default - just return the lowest score - could change later to favor center of the board?
+      //default - just return the lowest score - FIXME: could change later to favor center of the board?
       if (moveValue < random)
         moveValue = random;
-      //FIXME DEBUG:
-      printf("State being evaluated: \n"); 
-      drawBoard(position.state);
-      printf("Score chosen for the state: %d", moveValue);
-      printf("\n");
+
       return -(moveValue); // FIXME: negating makes it so the higher value should be picked in minimax idk
       
     case 3: /* AUTHOR: Jeff Wilson */
+      pieceVal = -(pieceVal);
+      winningPlayer = -(winningPlayer);
+
       if (winningPlayer == pieceVal) // if this move would result in a win, return best score
         return winningScore;
 
-      if(position.state[position.moveRowCoord][position.moveColCoord - 1] == -(pieceVal) && (position.moveColCoord - 1) >= 0) 
+      if ((position.moveRowCoord - 1) >= 0 && position.state[position.moveRowCoord - 1][position.moveColCoord] == -(pieceVal)) 
       {
-        // The piece under the current node is an enemy piece so play on top of it.
+        // The piece under the current piece is an enemy piece so play on top of it.
         currMoveVal = blockOpponentVertically_DEFENSE;
       }
-      else if(position.moveColCoord % 2 == 0){
-        // No chance to block, play an even column
+      else if (position.moveColCoord % 2 != 0)
+      {
+        // No chance to block, play an even column (with columns 1-7, to account for off-by-one error)
         currMoveVal = playEvenColumn;
       }
-      else if(position.moveColCoord % 2 == !0){
-        // No chance to block, play an odd column
+      else if (position.moveColCoord % 2 == 0)
+      {
+        // No chance to block, play an odd column (with columns 1-7, to account for off-by-one error)
         currMoveVal = playOddColumn;
       }
-      return currMoveVal;
+
+      return -(currMoveVal);
   }
   return 0; // something went wrong
 }
