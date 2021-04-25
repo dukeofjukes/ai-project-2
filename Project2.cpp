@@ -291,7 +291,7 @@ int Connect4::staticEval(bool player, Node position)
 
     case 2: /* AUTHOR: Joe McAdams */
       // FIXME: attempt to fix the weirdness: kinda works but minimax is still choosing the moves with lowest value (maybe switch pass and use thresh in initial call?)
-      pieceVal = -(pieceVal);
+      pieceVal = -(pieceVal); // FIXME: negating makes the evals correct
       winningPlayer = -(winningPlayer);
       /*Analyzes the board for amount in a row the state being evaluated will give for player or block for opponent.
         Returns the biggest value determined for the state (I.E if a move would block 3 in a row and also block 2 in a row, it's valued for blocking 3 in a row)*/
@@ -401,11 +401,11 @@ int Connect4::staticEval(bool player, Node position)
       if (moveValue < random)
         moveValue = random;
       //FIXME DEBUG:
-      /*printf("State being evaluated: \n"); 
+      printf("State being evaluated: \n"); 
       drawBoard(position.state);
       printf("Score chosen for the state: %d", moveValue);
-      printf("\n");*/
-      return moveValue;
+      printf("\n");
+      return -(moveValue); // FIXME: negating makes it so the higher value should be picked in minimax idk
       
     case 3: /* AUTHOR: Jeff Wilson */
       if (winningPlayer == pieceVal) // if this move would result in a win, return best score
